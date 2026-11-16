@@ -19,8 +19,8 @@ export default function AuthShell({ title, subtitle, children, footer }: {
       </header>
 
       <div className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-8 pb-12 grid lg:grid-cols-2 gap-12 items-center">
-        <aside className="hidden lg:block text-white">
-          <h2 className="text-4xl font-semibold tracking-tight leading-tight max-w-md [text-shadow:0_2px_24px_rgba(2,6,23,0.5)]">
+        <aside className="hidden lg:block text-white sky-heading">
+          <h2 className="sky-heading text-4xl font-semibold tracking-tight leading-tight max-w-md [text-shadow:0_2px_24px_rgba(2,6,23,0.5)]">
             Understand any codebase in minutes.
           </h2>
           <ul className="mt-10 space-y-6 stagger max-w-md">
@@ -30,8 +30,8 @@ export default function AuthShell({ title, subtitle, children, footer }: {
                   <Icon size={18} />
                 </span>
                 <div>
-                  <p className="font-medium">{t}</p>
-                  <p className="text-sm text-slate-300 mt-0.5">{text}</p>
+                  <p className="font-medium sky-heading">{t}</p>
+                  <p className="text-sm text-slate-300 mt-0.5 sky-text">{text}</p>
                 </div>
               </li>
             ))}

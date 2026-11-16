@@ -10,8 +10,8 @@
 
 /* Theme variables.
    The UI is always dark (html.dark) and the sky never changes.
-   Tapping the moon only changes its light via html[data-moon]:
-   "bright" = strong moon glow, default ("dim") = night. */
+   Tapping the moon switches html[data-sky] to "day" (light blue sky, sun);
+   tapping the sun switches back to "night" (the default on every visit). */
 :root {
   --background: #03050f;
   --foreground: #e2e8f0;
@@ -27,15 +27,6 @@
   --moon-wash: 0.05;
   --star-alpha: 1;
   color-scheme: dark;
-}
-html[data-moon="bright"] {
-  --moon-bright: 1.04;
-  --moon-glow-a: 0.8;
-  --moon-glow-b: 0.5;
-  --halo-opacity: 1;
-  --halo-scale: 6;
-  --moon-wash: 0.24;
-  --star-alpha: 0.85;
 }
 
 html {
@@ -124,15 +115,67 @@ body {
   filter: brightness(var(--moon-bright));
   transition: filter 0.8s ease, box-shadow 0.8s ease;
 }
-/* Hand cursor and a soft lift when hovering the moon over empty sky */
-html.moon-hover, html.moon-hover body { cursor: pointer; }
-html.moon-hover .night-sky__moon { filter: brightness(calc(var(--moon-bright) + 0.06)); }
-
-.night-sky[data-dim-moon] .night-sky__moon,
-.night-sky[data-dim-moon] .night-sky__moon-halo {
-  opacity: 0.18;
-  transition: opacity 0.6s ease;
+/* ---- Day sky (html[data-sky="day"]) ---- */
+.night-sky__day {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #4f9fe2 0%, #7fbdec 45%, #b8ddf6 80%, #d8eefb 100%);
+  opacity: 0;
+  transition: opacity 2.6s ease;
 }
+.night-sky__stars, .night-sky__moonlight { transition: opacity 2.2s ease; }
+html[data-sky="day"] .night-sky__day { opacity: 1; }
+html[data-sky="day"] .night-sky__stars,
+html[data-sky="day"] .night-sky__moonlight { opacity: 0; }
+
+.night-sky__moon, .night-sky__moon-halo, .night-sky__sun { will-change: transform, opacity; }
+
+.night-sky__sun {
+  position: absolute;
+  top: 9vh;
+  right: 9vw;
+  width: var(--moon-size);
+  height: var(--moon-size);
+  border-radius: 9999px;
+  opacity: 0;
+  background: radial-gradient(circle at 44% 40%, #fffef4 0%, #fff4bf 30%, #ffdc78 64%, #ffbf55 100%);
+  box-shadow:
+    0 0 36px 10px rgba(255, 220, 120, 0.85),
+    0 0 120px 50px rgba(255, 196, 92, 0.38),
+    0 0 260px 120px rgba(255, 238, 180, 0.28);
+}
+.night-sky__sun::before {
+  content: '';
+  position: absolute;
+  inset: -45%;
+  border-radius: 9999px;
+  background: repeating-conic-gradient(rgba(255, 228, 140, 0.28) 0deg 5deg, transparent 5deg 15deg);
+  -webkit-mask: radial-gradient(circle, transparent 36%, #000 38%, transparent 70%);
+  mask: radial-gradient(circle, transparent 36%, #000 38%, transparent 70%);
+  animation: sun-rays 70s linear infinite;
+}
+@keyframes sun-rays { to { transform: rotate(360deg); } }
+
+/* Text that sits directly on the sky turns dark in daylight */
+.page-title, .page-subtitle, .breadcrumb, .breadcrumb a, .sky-heading, .sky-text, .btn-ghost, .sky-btn {
+  transition: color 1.6s ease, background-color 1.6s ease, border-color 1.6s ease, text-shadow 1.6s ease;
+}
+html[data-sky="day"] .page-title, html[data-sky="day"] .sky-heading { color: #0b1a3a; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35); }
+html[data-sky="day"] .page-subtitle, html[data-sky="day"] .sky-text { color: #1f3b63; }
+html[data-sky="day"] .breadcrumb { color: #1f3b63; }
+html[data-sky="day"] .breadcrumb a:hover, html[data-sky="day"] .breadcrumb .text-slate-900 { color: #0b1a3a; }
+html[data-sky="day"] .btn-ghost { color: #0b1a3a; }
+html[data-sky="day"] .btn-ghost:hover { background-color: rgba(11, 26, 58, 0.08); }
+html[data-sky="day"] .sky-btn { color: #0b1a3a; border-color: rgba(11, 26, 58, 0.25); background-color: rgba(255, 255, 255, 0.35); }
+
+/* Hand cursor and a soft lift when hovering the moon or sun over empty sky */
+html.moon-hover, html.moon-hover body { cursor: pointer; }
+html.moon-hover .night-sky__moon { filter: brightness(calc(var(--moon-bright) + 0.08)); }
+html.moon-hover .night-sky__sun { filter: brightness(1.06); }
+
+.night-sky[data-dim-moon] .night-sky__moon { filter: brightness(var(--moon-bright)) opacity(0.2); }
+.night-sky[data-dim-moon] .night-sky__moon-halo,
+.night-sky[data-dim-moon] .night-sky__sun { filter: opacity(0.2); }
 .night-sky__horizon {
   position: absolute;
   left: 0;

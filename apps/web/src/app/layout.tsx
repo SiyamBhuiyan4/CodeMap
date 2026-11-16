@@ -19,10 +19,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
-        {/* Every visit starts at night (dim moon); tapping the moon brightens it */}
+        {/* Every visit starts at night; tapping the moon brings morning */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `document.documentElement.classList.add('dark');document.documentElement.dataset.moon='dim';`,
+            __html: `document.documentElement.classList.add('dark');document.documentElement.dataset.sky='night';`,
           }}
         />
       </head>

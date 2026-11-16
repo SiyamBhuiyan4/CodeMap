@@ -10,7 +10,7 @@ export default function Logo({ size = 'md', inverted = false }: { size?: 'sm' | 
       <span className={`${box} bg-gradient-to-br from-[#8187ff] to-[#5a5ee8] text-white flex items-center justify-center shadow-[0_0_0_1px_rgba(255,255,255,0.15),0_6px_16px_-6px_rgba(109,114,246,0.8)]`}>
         <Network size={icon} strokeWidth={2.25} />
       </span>
-      <span className={`${text} font-semibold tracking-tight ${inverted ? 'text-white' : 'text-slate-900'}`}>
+      <span className={`${text} font-semibold tracking-tight ${inverted ? 'text-white sky-heading' : 'text-slate-900'}`}>
         CodeAtlas
       </span>
     </span>
