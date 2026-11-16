@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { usePathname } from 'next/navigation';
 
 type Star = {
   x: number; y: number; r: number; base: number; speed: number; phase: number; tint: string;
@@ -15,13 +14,11 @@ const WALK_SPEED = 7; // px/s drift of the nearest star layer
  * Full-screen night sky behind every page, animated as if someone is walking under it:
  * - stars in three depth layers drift sideways at different speeds (parallax) and twinkle
  * - mouse movement and page scroll shift the layers slightly for depth
- * - shooting stars streak across every few seconds; the moon stays put, like a real distant moon
+ * - shooting stars streak across every few seconds
  * Drawn on one canvas at ~30 fps, paused in hidden tabs, static under reduced motion.
  */
 export default function NightSky() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  // On the architecture map the graph sits over the sky, so the moon is faded there
-  const dimMoon = /\/architecture$/.test(usePathname() || '');
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -202,11 +199,8 @@ export default function NightSky() {
   }, []);
 
   return (
-    <div className="night-sky" data-dim-moon={dimMoon ? '' : undefined} aria-hidden="true">
-      <div className="night-sky__moonlight" />
+    <div className="night-sky" aria-hidden="true">
       <canvas ref={canvasRef} className="night-sky__stars" />
-      <div className="night-sky__moon-halo" />
-      <div className="night-sky__moon" />
     </div>
   );
 }

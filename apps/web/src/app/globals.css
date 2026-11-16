@@ -16,13 +16,6 @@
   --sky-top: #02040c;
   --sky-mid: #060d24;
   --sky-bottom: #0c1838;
-  --moon-size: clamp(96px, 11vw, 176px);
-  --moon-bright: 0.78;
-  --moon-glow-a: 0.18;
-  --moon-glow-b: 0.08;
-  --halo-opacity: 0.3;
-  --halo-scale: 3.4;
-  --moon-wash: 0.05;
   --star-alpha: 1;
   color-scheme: dark;
 }
@@ -66,65 +59,9 @@ body {
   background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 58%, var(--sky-bottom) 100%);
   transition: background 0.8s ease;
 }
-.night-sky__moonlight {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at calc(100% - 9vw - var(--moon-size) / 2) calc(9vh + var(--moon-size) / 2),
-    rgba(196, 210, 255, var(--moon-wash)) 0%, rgba(160, 180, 255, calc(var(--moon-wash) * 0.4)) 28%, transparent 60%);
-  transition: opacity 0.8s ease;
-}
 .night-sky__stars {
   position: absolute;
   inset: 0;
-}
-.night-sky__moon-halo {
-  position: absolute;
-  top: calc(9vh + var(--moon-size) / 2);
-  right: calc(9vw + var(--moon-size) / 2);
-  width: calc(var(--moon-size) * var(--halo-scale));
-  height: calc(var(--moon-size) * var(--halo-scale));
-  transform: translate(50%, -50%);
-  border-radius: 9999px;
-  background: radial-gradient(circle, rgba(255, 250, 230, 0.32) 0%, rgba(200, 215, 255, 0.14) 32%, transparent 68%);
-  opacity: var(--halo-opacity);
-  transition: opacity 0.8s ease, width 0.8s ease, height 0.8s ease;
-}
-.night-sky__moon {
-  position: absolute;
-  top: 9vh;
-  right: 9vw;
-  width: var(--moon-size);
-  height: var(--moon-size);
-  border-radius: 9999px;
-  /* Maria and craters layered over a warm, softly shaded disc */
-  background:
-    radial-gradient(circle at 62% 35%, rgba(130, 128, 108, 0.20) 0%, rgba(130, 128, 108, 0.10) 6%, transparent 11%),
-    radial-gradient(circle at 37% 57%, rgba(130, 128, 108, 0.18) 0%, rgba(130, 128, 108, 0.09) 9%, transparent 16%),
-    radial-gradient(circle at 57% 70%, rgba(130, 128, 108, 0.14) 0%, rgba(130, 128, 108, 0.06) 5%, transparent 10%),
-    radial-gradient(circle at 30% 32%, rgba(130, 128, 108, 0.12) 0%, transparent 8%),
-    radial-gradient(circle at 73% 57%, rgba(130, 128, 108, 0.10) 0%, transparent 7%),
-    radial-gradient(ellipse 55% 40% at 46% 48%, rgba(150, 148, 128, 0.14) 0%, transparent 70%),
-    radial-gradient(circle at 38% 34%, #fffef6 0%, #f5f2e2 42%, #dedac4 72%, #c3bfa6 100%);
-  box-shadow:
-    inset -12px -10px 28px rgba(60, 58, 40, 0.22),
-    inset 6px 6px 18px rgba(255, 255, 255, 0.5),
-    0 0 36px 8px rgba(255, 248, 220, var(--moon-glow-a)),
-    0 0 120px 40px rgba(190, 205, 255, var(--moon-glow-b));
-  filter: brightness(var(--moon-bright));
-  transition: filter 0.8s ease, box-shadow 0.8s ease;
-}
-.night-sky[data-dim-moon] .night-sky__moon,
-.night-sky[data-dim-moon] .night-sky__moon-halo {
-  opacity: 0.18;
-  transition: opacity 0.6s ease;
-}
-.night-sky__horizon {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 30vh;
-  background: linear-gradient(180deg, transparent, rgba(2, 6, 23, 0.35));
 }
 
 @layer components {
@@ -135,7 +72,7 @@ body {
   .page-header {
     @apply flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8;
   }
-  /* Text that sits directly on the sky stays light in both modes */
+  /* Text that sits directly on the sky stays light */
   .page-title {
     @apply text-2xl sm:text-3xl font-semibold tracking-tight text-white;
     text-shadow: 0 1px 12px rgba(2, 6, 23, 0.35);

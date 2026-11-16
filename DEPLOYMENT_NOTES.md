@@ -97,11 +97,10 @@ Visual only. No features changed.
 - Summary numbers count up, and the language bar grows into place. The profile menu pops open.
 
 ## Night-sky theme (2026-11-16)
-- Every page, including sign in, sits on an animated night sky (`components/NightSky.tsx`, mounted in `app/layout.tsx`): a gradient sky, a full moon with craters and glow, twinkling stars, and shooting stars every 4 to 10 seconds. Everything is drawn on one canvas at about 30 fps, paused in hidden tabs, and static under reduced motion.
-- **Night mode only**: there is no day view, sun or toggle. The moon stays in its night look on every page.
+- Every page, including sign in, sits on an animated night sky (`components/NightSky.tsx`, mounted in `app/layout.tsx`): a gradient sky, twinkling stars, and shooting stars every 4 to 10 seconds. Everything is drawn on one canvas at about 30 fps, paused in hidden tabs, and static under reduced motion.
+- **Night mode only**: there is no day view, sun, moon or toggle. Only a starry night sky.
 - **Moving sky**: stars in 3 depth layers drift sideways at different speeds, and mouse movement and page scroll add parallax. There is no ground or hills, only sky. Up to 900 stars, and shooting stars every 1.5 to 4.5 seconds (up to 3 at once).
 - Cards are frosted dark glass. The interface is always dark (`html.dark`).
-- The moon fades on the architecture map so the graph stays readable.
 
 ## Project page additions (2026-11-16)
 - **Download ZIP** in the project header once analyzed. GitHub projects download GitHub's own archive of the default branch (every file). ZIP-upload projects download the stored files from `GET /api/projects/{id}/download` (owner-checked).
