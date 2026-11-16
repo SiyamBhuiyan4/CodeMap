@@ -98,7 +98,7 @@ Visual only. No features changed.
 
 ## Night-sky theme (2026-11-16)
 - Every page, including sign in, sits on an animated night sky (`components/NightSky.tsx`, mounted in `app/layout.tsx`): a gradient sky, a full moon with craters and glow, twinkling stars, and shooting stars every 4 to 10 seconds. Everything is drawn on one canvas at about 30 fps, paused in hidden tabs, and static under reduced motion.
-- **Tap the moon for morning**: the moon travels along a ∩ arc from the top-right towards the left and sets, while the sun rises along a matching arc from the lower right into the moon's place (about 3 seconds). The sky fades to a natural day-blue gradient with a warm sunlight wash and soft drifting clouds; the stars fade out, shooting stars stop, and text on the sky turns dark navy for readability. The sun is a soft white-gold disc with layered glow and a slow breathing bloom (no cartoon rays). In daylight, cards and the top bar become solid deep navy so they stay crisp on the bright sky. **Tap the sun** to reverse it back to night. Every visit starts at night (`html[data-sky]`). Cards and the top bar stay dark in both. Taps are detected by position, so buttons, links, cards and the graph over the moon or sun still work normally.
+- **Night mode only**: there is no day view, sun or toggle. The moon stays in its night look on every page.
 - **Moving sky**: stars in 3 depth layers drift sideways at different speeds, and mouse movement and page scroll add parallax. There is no ground or hills, only sky. Up to 900 stars, and shooting stars every 1.5 to 4.5 seconds (up to 3 at once).
 - Cards are frosted dark glass. The interface is always dark (`html.dark`).
 - The moon fades on the architecture map so the graph stays readable.

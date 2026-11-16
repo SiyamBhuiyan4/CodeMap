@@ -24,13 +24,13 @@ export default function Home() {
 
       <main className="flex-1">
         <section className="stagger max-w-6xl mx-auto px-4 sm:px-8 pt-16 sm:pt-24 pb-20 text-center">
-          <span className="badge bg-white/10 text-indigo-100 ring-1 ring-inset ring-white/20 backdrop-blur sky-btn">
+          <span className="badge bg-white/10 text-indigo-100 ring-1 ring-inset ring-white/20 backdrop-blur">
             Codebase architecture intelligence
           </span>
-          <h1 className="sky-heading mt-6 text-4xl sm:text-6xl font-semibold tracking-tight text-white max-w-3xl mx-auto leading-[1.1] [text-shadow:0_2px_24px_rgba(2,6,23,0.5)]">
+          <h1 className="mt-6 text-4xl sm:text-6xl font-semibold tracking-tight text-white max-w-3xl mx-auto leading-[1.1] [text-shadow:0_2px_24px_rgba(2,6,23,0.5)]">
             See how your code fits together.
           </h1>
-          <p className="sky-text mt-6 text-lg text-slate-300 max-w-2xl mx-auto">
+          <p className="mt-6 text-lg text-slate-300 max-w-2xl mx-auto">
             CodeAtlas analyses any repository and turns it into an interactive map, so you can understand,
             search and explain a codebase in minutes instead of days.
           </p>
@@ -38,7 +38,7 @@ export default function Home() {
             <Link href="/register" className="btn btn-primary btn-lg group">
               Create free account <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-0.5" />
             </Link>
-            <Link href="/login" className="btn btn-lg bg-white/10 text-white border border-white/20 hover:bg-white/20 backdrop-blur sky-btn">
+            <Link href="/login" className="btn btn-lg bg-white/10 text-white border border-white/20 hover:bg-white/20 backdrop-blur">
               Sign in
             </Link>
           </div>
@@ -60,7 +60,7 @@ export default function Home() {
       </main>
 
       <footer>
-        <div className="sky-text max-w-6xl mx-auto px-4 sm:px-8 py-6 text-sm text-slate-400">© {new Date().getFullYear()} CodeAtlas</div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-8 py-6 text-sm text-slate-400">© {new Date().getFullYear()} CodeAtlas</div>
       </footer>
     </div>
   );

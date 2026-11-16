@@ -18,14 +18,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <head>
-        {/* Every visit starts at night; tapping the moon brings morning */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `document.documentElement.classList.add('dark');document.documentElement.dataset.sky='night';`,
-          }}
-        />
-      </head>
       <body className={`${inter.className} min-h-screen flex flex-col text-slate-900`}>
         <NightSky />
         <TopBar />

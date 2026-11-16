@@ -12,8 +12,7 @@ const TINTS = ['255,255,255', '255,250,235', '220,230,255', '200,215,255'];
 const WALK_SPEED = 7; // px/s drift of the nearest star layer
 
 /**
- * Full-screen night sky behind every page, animated as if someone is walking under it.
- * Tapping the moon brings morning (light blue sky, the sun rises); tapping the sun brings night back:
+ * Full-screen night sky behind every page, animated as if someone is walking under it:
  * - stars in three depth layers drift sideways at different speeds (parallax) and twinkle
  * - mouse movement and page scroll shift the layers slightly for depth
  * - shooting stars streak across every few seconds; the moon stays put, like a real distant moon
@@ -21,9 +20,6 @@ const WALK_SPEED = 7; // px/s drift of the nearest star layer
  */
 export default function NightSky() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const moonRef = useRef<HTMLDivElement>(null);
-  const haloRef = useRef<HTMLDivElement>(null);
-  const sunRef = useRef<HTMLDivElement>(null);
   // On the architecture map the graph sits over the sky, so the moon is faded there
   const dimMoon = /\/architecture$/.test(usePathname() || '');
 
@@ -153,7 +149,7 @@ export default function NightSky() {
       drawStars(t, elapsed * WALK_SPEED, window.scrollY || 0);
 
       if (!reduceMotion) {
-        if (t > nextMeteorAt && meteors.length < 3 && document.documentElement.dataset.sky !== 'day') {
+        if (t > nextMeteorAt && meteors.length < 3) {
           spawnMeteor();
           // Every 1.5-4.5 seconds, sometimes a quick pair; at most 3 in the sky at once
           nextMeteorAt = t + (Math.random() < 0.25 ? 450 : 1500 + Math.random() * 3000);
@@ -191,113 +187,9 @@ export default function NightSky() {
       targetY = (e.clientY / height - 0.5) * 2;
     };
 
-    // ---- Day / night: tap the moon for morning, tap the sun for night -------------------
-    // The moon sets along an arc (∩) from the top-right towards the left while the sun rises
-    // along a matching arc from the lower right into the moon's place (and the reverse).
-    // Bodies are moved with transforms only, so the animation stays smooth.
-    const DURATION = 3000;
-    let animating = false;
-
-    const home = (el: HTMLElement) => {
-      const size = el.offsetWidth;
-      return {
-        size,
-        x: window.innerWidth - window.innerWidth * 0.09 - size / 2,
-        y: window.innerHeight * 0.09 + size / 2,
-      };
-    };
-    const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
-    const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
-
-    // Offset from the home position along an arc that lifts by `lift` px at its middle
-    const arc = (from: { x: number; y: number }, to: { x: number; y: number }, t: number, lift: number, h: { x: number; y: number }) => ({
-      dx: from.x + (to.x - from.x) * t - h.x,
-      dy: from.y + (to.y - from.y) * t - lift * Math.sin(Math.PI * t) - h.y,
-    });
-
-    const place = (el: HTMLElement | null, dx: number, dy: number, opacity: number) => {
-      if (!el) return;
-      el.style.transform = dx || dy ? `translate3d(${dx}px, ${dy}px, 0)` : '';
-      el.style.opacity = String(opacity);
-    };
-
-    const switchSky = () => {
-      const root = document.documentElement;
-      const toDay = root.dataset.sky !== 'day';
-      const setting = toDay ? moonRef.current : sunRef.current;
-      const rising = toDay ? sunRef.current : moonRef.current;
-      if (!setting || !rising || animating) return;
-      root.dataset.sky = toDay ? 'day' : 'night';
-      readTheme();
-
-      const h = home(setting);
-      const W = window.innerWidth;
-      const H = window.innerHeight;
-      const setEnd = { x: -h.size, y: H * 0.62 };        // sets beyond the left edge
-      const riseStart = { x: W + h.size, y: H * 0.62 };  // rises from beyond the right edge
-      const lift = Math.max(60, (setEnd.y - h.y) * 0.5 + h.y * 0.55);
-
-      if (reduceMotion) {
-        place(setting, setEnd.x - h.x, setEnd.y - h.y, 0);
-        place(rising, 0, 0, 1);
-        if (toDay) place(haloRef.current, setEnd.x - h.x, setEnd.y - h.y, 0);
-        else place(haloRef.current, 0, 0, 1);
-        return;
-      }
-
-      animating = true;
-      const t0 = performance.now();
-      const step = (now: number) => {
-        const p = clamp01((now - t0) / DURATION);
-        // Setting body travels during 0-75%, rising body during 25-100%
-        const ps = ease(clamp01(p / 0.75));
-        const pr = ease(clamp01((p - 0.25) / 0.75));
-        const so = arc(h, setEnd, ps, lift, h);
-        const ro = arc(riseStart, h, pr, lift, h);
-        place(setting, so.dx, so.dy, 1 - clamp01((ps - 0.7) / 0.3));
-        place(rising, ro.dx, ro.dy, clamp01(pr / 0.25));
-        // The moon's halo travels with the moon
-        if (toDay) place(haloRef.current, so.dx, so.dy, 1 - ps);
-        else place(haloRef.current, ro.dx, ro.dy, pr);
-        if (p < 1) requestAnimationFrame(step);
-        else {
-          animating = false;
-          place(rising, 0, 0, 1);
-        }
-      };
-      requestAnimationFrame(step);
-    };
-
-    // The sky sits behind the page, so taps are detected by position; taps on buttons,
-    // links, fields, cards or the graph are ignored.
-    const INTERACTIVE = 'a,button,input,textarea,select,label,[role="button"],[role="tab"],[role="link"],.card,.react-flow,.glass-bar';
-    const onBody = (x: number, y: number, target: EventTarget | null) => {
-      const el = document.documentElement.dataset.sky === 'day' ? sunRef.current : moonRef.current;
-      if (!el || animating || (target instanceof Element && target.closest(INTERACTIVE))) return false;
-      const r = el.getBoundingClientRect();
-      return Math.hypot(x - (r.left + r.width / 2), y - (r.top + r.height / 2)) <= r.width / 2;
-    };
-    const onClick = (e: MouseEvent) => {
-      if (onBody(e.clientX, e.clientY, e.target)) switchSky();
-    };
-    const onHover = (e: PointerEvent) => {
-      document.documentElement.classList.toggle('moon-hover', onBody(e.clientX, e.clientY, e.target));
-    };
-
-    // Initial state: night (moon home, sun hidden below the right edge)
-    if (document.documentElement.dataset.sky === 'day') {
-      place(moonRef.current, 0, 0, 0);
-      place(haloRef.current, 0, 0, 0);
-      place(sunRef.current, 0, 0, 1);
-    } else {
-      place(sunRef.current, 0, 0, 0);
-    }
-
     readTheme();
     build();
     start();
-    document.addEventListener('click', onClick);
-    window.addEventListener('pointermove', onHover, { passive: true });
     window.addEventListener('resize', onResize);
     document.addEventListener('visibilitychange', onVisibility);
     if (!reduceMotion) window.addEventListener('pointermove', onPointer, { passive: true });
@@ -306,27 +198,15 @@ export default function NightSky() {
       window.removeEventListener('resize', onResize);
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('pointermove', onPointer);
-      document.removeEventListener('click', onClick);
-      window.removeEventListener('pointermove', onHover);
-      document.documentElement.classList.remove('moon-hover');
     };
   }, []);
 
   return (
     <div className="night-sky" data-dim-moon={dimMoon ? '' : undefined} aria-hidden="true">
-      <div className="night-sky__day" />
-      <div className="night-sky__sunlight" />
-      <div className="night-sky__clouds">
-        <div className="cloud cloud--1" />
-        <div className="cloud cloud--2" />
-        <div className="cloud cloud--3" />
-        <div className="cloud cloud--4" />
-      </div>
       <div className="night-sky__moonlight" />
       <canvas ref={canvasRef} className="night-sky__stars" />
-      <div ref={haloRef} className="night-sky__moon-halo" />
-      <div ref={moonRef} className="night-sky__moon" />
-      <div ref={sunRef} className="night-sky__sun" />
+      <div className="night-sky__moon-halo" />
+      <div className="night-sky__moon" />
     </div>
   );
 }
