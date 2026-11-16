@@ -28,7 +28,9 @@ target_metadata = Base.metadata
 
 # Set database URL dynamically
 db_url = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/codeatlas")
-config.set_main_option("sqlalchemy.url", db_url)
+if db_url.startswith("postgres://"):
+    db_url = "postgresql://" + db_url[len("postgres://"):]
+config.set_main_option("sqlalchemy.url", db_url.replace("%", "%%"))
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""

@@ -16,6 +16,8 @@ class File(Base):
     is_test = Column(Boolean, default=False)
     is_generated = Column(Boolean, default=False)
     is_binary = Column(Boolean, default=False)
+    # Source text persisted so code views work when the workspace is ephemeral (e.g. serverless)
+    content = Column(Text, nullable=True)
 
     snapshot = relationship("RepositorySnapshot", backref="files")
 

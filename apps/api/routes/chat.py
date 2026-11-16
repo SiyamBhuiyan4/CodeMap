@@ -11,13 +11,13 @@ from packages.shared.models import (
     Project, User, Repository, RepositorySnapshot, ChatSession, ChatMessage
 )
 from apps.api.core.deps import get_db, get_current_user
-from packages.shared.ai.provider import OllamaProvider
+from packages.shared.ai.provider import get_llm_provider
 from packages.shared.ai.retriever import (
     retrieve_architecture_context, build_rag_prompt, synthesize_architecture_fallback
 )
 
 router = APIRouter()
-ollama_provider = OllamaProvider()
+ollama_provider = get_llm_provider()
 
 class ChatRequest(BaseModel):
     message: str

@@ -153,7 +153,7 @@ def get_project_graph(
 
 import os
 from packages.shared.models.code_entity import File
-from packages.shared.utils.workspace import get_workspace_dir
+from packages.shared.utils.workspace import get_workspace_dir, read_snapshot_file
 
 def _is_safe_path(target_path: str, base_dir: str) -> bool:
     abs_target = os.path.abspath(target_path)
@@ -213,13 +213,10 @@ def get_entity_details(
 
         source_code = ""
         workspace_dir = get_workspace_dir(str(file_obj.snapshot_id))
-        file_path = os.path.join(workspace_dir, file_obj.path)
-        if _is_safe_path(file_path, workspace_dir) and os.path.exists(file_path):
-            try:
-                with open(file_path, "r", encoding="utf-8") as f:
-                    source_code = f.read()
-            except Exception:
-                source_code = "# Unable to read file content"
+        try:
+            source_code = read_snapshot_file(file_obj, workspace_dir) or ""
+        except Exception:
+            source_code = "# Unable to read file content"
 
         file_name = file_obj.path.split("/")[-1]
         
@@ -253,17 +250,16 @@ def get_entity_details(
     source_code = ""
     if file_obj:
         workspace_dir = get_workspace_dir(str(ent.snapshot_id))
-        file_path = os.path.join(workspace_dir, file_obj.path)
-        if _is_safe_path(file_path, workspace_dir) and os.path.exists(file_path):
-            try:
-                with open(file_path, "r", encoding="utf-8") as f:
-                    lines = f.readlines()
-                    if ent.start_line and ent.end_line:
-                        source_code = "".join(lines[ent.start_line - 1 : ent.end_line])
-                    else:
-                        source_code = "".join(lines)
-            except Exception:
-                source_code = "# Unable to read source code snippet"
+        try:
+            text = read_snapshot_file(file_obj, workspace_dir)
+            if text is not None:
+                lines = text.splitlines(keepends=True)
+                if ent.start_line and ent.end_line:
+                    source_code = "".join(lines[ent.start_line - 1 : ent.end_line])
+                else:
+                    source_code = "".join(lines)
+        except Exception:
+            source_code = "# Unable to read source code snippet"
     
     # Find callers and callees
     callers = db.query(CallRelationship).filter(CallRelationship.callee_id == ent.id).all()

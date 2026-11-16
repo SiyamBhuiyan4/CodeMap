@@ -21,7 +21,7 @@ app = FastAPI(title="CodeAtlas API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[o.strip() for o in os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",") if o.strip()],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -48,14 +48,17 @@ def readiness_check():
     
     # Check Database
     try:
-        engine = create_engine(settings.DATABASE_URL)
+        from packages.shared.database import engine
         with engine.connect() as conn:
             checks["database"] = "connected"
     except Exception as e:
         checks["database"] = f"error: {str(e)}"
         status_code = 503
 
-    # Check Redis
+    # Check Redis (not used when analysis runs inline, e.g. on Vercel)
+    if os.getenv("ANALYSIS_MODE", "celery").lower() == "inline":
+        checks["redis"] = "not_required"
+        return {"status": "ready" if status_code == 200 else "not_ready", "checks": checks}
     try:
         r = redis.from_url(settings.REDIS_URL)
         r.ping()

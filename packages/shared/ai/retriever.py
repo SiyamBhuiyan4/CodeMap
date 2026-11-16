@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from packages.shared.models import (
     CodeEntity, File, CallRelationship, Dependency, AnalysisFinding, RepositorySnapshot
 )
-from packages.shared.utils.workspace import get_workspace_dir
+from packages.shared.utils.workspace import get_workspace_dir, read_snapshot_file
 
 def retrieve_architecture_context(
     db: Session,
@@ -73,15 +73,13 @@ def retrieve_architecture_context(
                     snippet = ""
                     if file_obj:
                         ws_dir = get_workspace_dir(str(snapshot_id))
-                        fp = os.path.join(ws_dir, file_obj.path)
-                        if os.path.exists(fp):
-                            try:
-                                with open(fp, "r", encoding="utf-8") as f_in:
-                                    lines = f_in.readlines()
-                                    if ent.start_line and ent.end_line:
-                                        snippet = "".join(lines[ent.start_line - 1 : ent.end_line])
-                            except Exception:
-                                pass
+                        try:
+                            text = read_snapshot_file(file_obj, ws_dir)
+                            if text is not None and ent.start_line and ent.end_line:
+                                lines = text.splitlines(keepends=True)
+                                snippet = "".join(lines[ent.start_line - 1 : ent.end_line])
+                        except Exception:
+                            pass
 
                     # Callers and Callees
                     callers = db.query(CallRelationship).filter(CallRelationship.callee_id == ent.id).all()

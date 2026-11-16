@@ -3,7 +3,6 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 import shutil
 import os
-from celery import Celery
 
 from packages.shared.models import Project, User, Repository, RepositorySnapshot, AnalysisJob
 from apps.api.schemas.repository import GithubImportRequest, RepositoryResponse
@@ -14,9 +13,30 @@ from packages.shared.utils.zip import extract_zip, ZipExtractionError
 
 router = APIRouter()
 
-# Initialize celery client to send tasks without importing the worker module
-redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
-celery_client = Celery("codeatlas_api", broker=redis_url)
+# How analysis jobs run:
+#   celery (default) - queued to the Celery worker over Redis (docker-compose setup)
+#   inline           - run inside the request (serverless hosts with no long-lived worker)
+ANALYSIS_MODE = os.getenv("ANALYSIS_MODE", "celery").lower()
+_celery_client = None
+
+def _get_celery_client():
+    global _celery_client
+    if _celery_client is None:
+        from celery import Celery
+        redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+        _celery_client = Celery("codeatlas_api", broker=redis_url)
+    return _celery_client
+
+def dispatch_analysis(job_id: str, snapshot_id: str, workspace_dir: str):
+    if ANALYSIS_MODE == "inline":
+        from apps.analyzer.jobs import run_analysis_job
+        run_analysis_job(job_id, snapshot_id, workspace_dir)
+        return
+    # Dispatch to Celery asynchronously without blocking HTTP thread
+    _get_celery_client().send_task(
+        "apps.worker.main.analyze_repository_task",
+        args=[job_id, snapshot_id, workspace_dir]
+    )
 
 def verify_project_access(project_id: UUID, db: Session, user: User) -> Project:
     project = db.query(Project).filter(Project.id == project_id, Project.user_id == user.id).first()
@@ -62,11 +82,7 @@ def import_github_repository(
     db.commit()
     db.refresh(job)
 
-    # Dispatch to Celery asynchronously without blocking HTTP thread
-    celery_client.send_task(
-        "apps.worker.main.analyze_repository_task",
-        args=[str(job.id), str(snapshot.id), workspace_dir]
-    )
+    dispatch_analysis(str(job.id), str(snapshot.id), workspace_dir)
 
     return repo
 
@@ -111,10 +127,6 @@ def upload_zip_repository(
     db.commit()
     db.refresh(job)
 
-    # Dispatch to Celery asynchronously without blocking HTTP thread
-    celery_client.send_task(
-        "apps.worker.main.analyze_repository_task",
-        args=[str(job.id), str(snapshot.id), workspace_dir]
-    )
+    dispatch_analysis(str(job.id), str(snapshot.id), workspace_dir)
 
     return repo

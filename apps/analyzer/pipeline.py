@@ -85,6 +85,7 @@ def run_analysis_pipeline(db: Session, snapshot_id: str, workspace_dir: str, job
         try:
             with open(abs_path, 'r', encoding='utf-8') as f_in:
                 content = f_in.read()
+            file_record.content = content
                 
             result = parser.parse(content, rel_path)
             

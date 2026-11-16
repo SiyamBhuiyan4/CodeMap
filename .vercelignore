@@ -1,0 +1,9 @@
+apps/web
+apps/worker
+tests
+docs
+**/tests
+**/__pycache__
+.venv
+.env
+docker-compose*.yml
