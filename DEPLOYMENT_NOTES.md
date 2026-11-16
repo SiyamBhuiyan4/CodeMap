@@ -69,7 +69,12 @@ The graph page was slow and opened on a random corner. Changes made:
 ## UI cleanup (2026-11-16)
 - Removed the "Architecture Map" / "AI Chat" buttons from the project header and the "Projects" button from the top bar.
 - AI chat is now a fixed ✨ button at the bottom-right of the project page and the architecture map. It opens a chat window there (`components/ChatWidget.tsx`). On the map, the selected node is sent as context.
-- The result card says "Analysis complete" only right after an import. On a fresh visit it says "Last analyzed repository" (the previous import) with **View Architecture Map**.
+- Once a project has an analyzed repo, the "Ingest Repository" box is hidden. The page shows "Analysis complete" with the repo and **View Architecture Map**. A small **Re-analyze** link brings the import box back, prefilled with the GitHub URL.
+
+## Trie search (2026-11-16)
+- `apps/web/src/lib/trie.ts`: a prefix tree. Each name is indexed whole and by each word (snake_case, camelCase, dots, slashes), so "user" finds `get_user_by_id` and `UserService`. Exact match first, then full-name prefix, then word prefix; shorter names first.
+- **Architecture map**: a search box in the header (press `/` to focus). Picking a result zooms to the node, selects it and opens its details. Arrow keys, Enter and Esc work.
+- **Projects page**: a search bar filters projects by name or description.
 
 ## What Siyam did (by hand)
 1. Asked for the app to be hosted for free, without a card, and without dropping any features.

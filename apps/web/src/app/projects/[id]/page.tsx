@@ -41,7 +41,7 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [job, setJob] = useState<Job | null>(null);
   const [tracking, setTracking] = useState(false);
-  const [justFinished, setJustFinished] = useState(false);
+  const [showIngest, setShowIngest] = useState(false);
   const ignoreJobId = useRef<string | null>(null);
   const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -100,7 +100,7 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
 
   const beginTracking = () => {
     ignoreJobId.current = job?.id ?? null;
-    setJustFinished(true);
+    setShowIngest(false);
     setJob(null);
     setTracking(true);
     startPolling();
@@ -252,13 +252,20 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-2xl">✓</div>
                   <div>
-                    <h2 className="text-xl font-medium">{justFinished ? 'Analysis complete' : 'Last analyzed repository'}</h2>
+                    <h2 className="text-xl font-medium">Analysis complete</h2>
                     <p className="text-sm text-gray-500 truncate max-w-md" title={job.source}>{job.source}</p>
                   </div>
                 </div>
-                <Link href={`/projects/${params.id}/architecture`} className="px-6 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition text-center">
-                  View Architecture Map
-                </Link>
+                <div className="flex items-center gap-4">
+                  {!showIngest && (
+                    <button onClick={() => { setShowIngest(true); if (job?.source_type === 'github') setGithubUrl(job.source); }} className="text-sm text-gray-500 hover:text-gray-900 underline-offset-4 hover:underline">
+                      Re-analyze
+                    </button>
+                  )}
+                  <Link href={`/projects/${params.id}/architecture`} className="px-6 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition text-center">
+                    View Architecture Map
+                  </Link>
+                </div>
               </div>
             ) : job?.status === 'FAILED' ? (
               <div className="flex items-center gap-4">
@@ -272,8 +279,14 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
           </div>
         )}
 
+        {(showIngest || !(job?.status === 'COMPLETED' || (tracking && (!job || isActive(job))))) && (
         <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-200">
-          <h2 className="text-xl font-medium mb-6">Ingest Repository</h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-medium">{job?.status === 'COMPLETED' ? 'Re-analyze Repository' : 'Ingest Repository'}</h2>
+            {showIngest && (
+              <button onClick={() => setShowIngest(false)} className="text-sm text-gray-500 hover:text-gray-900">Cancel</button>
+            )}
+          </div>
           {error && <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm">{error}</div>}
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -337,6 +350,7 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
             </div>
           </div>
         </div>
+        )}
       </div>
       <ChatWidget projectId={params.id} />
     </div>

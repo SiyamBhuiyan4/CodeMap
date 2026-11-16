@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import ReactFlow, { Background, Controls, MiniMap, useNodesState, MarkerType } from 'reactflow';
+import ReactFlow, { Background, Controls, MiniMap, useNodesState, MarkerType, ReactFlowInstance } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Activity, Code, GitMerge, FileText, ArrowLeft, Terminal, Cpu, MessageSquare, Send, Sparkles, X } from 'lucide-react';
 import CustomNode from '@/components/CustomNode';
 import UserMenu from '@/components/UserMenu';
 import ChatWidget from '@/components/ChatWidget';
+import GraphSearch, { SearchItem } from '@/components/GraphSearch';
 
 const NODE_W = 220;
 const NODE_H = 64;
@@ -107,6 +108,8 @@ export default function ArchitecturePage({ params }: { params: { id: string } })
   const [loadingStage, setLoadingStage] = useState('Downloading graph...');
   const [showLayers, setShowLayers] = useState({ containment: true, call: false, dependency: false });
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [rf, setRf] = useState<ReactFlowInstance | null>(null);
+  const [searchItems, setSearchItems] = useState<SearchItem[]>([]);
   const [entityDetails, setEntityDetails] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'logic'>('overview');
   
@@ -142,6 +145,7 @@ export default function ArchitecturePage({ params }: { params: { id: string } })
           }));
 
           setNodes(getLayoutedNodes(styledNodes, data.edges));
+          setSearchItems(styledNodes.map((n: any) => ({ id: n.id, name: n.data.name, type: n.data.type })));
           setAllEdges(data.edges);
         }
       } catch (err) {
@@ -201,6 +205,15 @@ export default function ArchitecturePage({ params }: { params: { id: string } })
     }
   }, [params.id]);
 
+  // Search result picked: zoom to the node, select it and open its details panel
+  const focusNode = useCallback((id: string) => {
+    const node = rf?.getNode(id);
+    if (!node) return;
+    rf!.setCenter(node.position.x + 110, node.position.y + 32, { zoom: 1.1, duration: 600 });
+    setNodes((ns) => ns.map((n) => ({ ...n, selected: n.id === id })));
+    onNodeClick(null, node);
+  }, [rf, setNodes, onNodeClick]);
+
   if (loading) {
     return (
       <div className="h-screen bg-[#050505] flex items-center justify-center">
@@ -227,6 +240,9 @@ export default function ArchitecturePage({ params }: { params: { id: string } })
             <p className="text-gray-400 text-xs font-mono uppercase tracking-widest mt-1">Live Telemetry & Topology Matrix</p>
           </div>
         </div>
+        <div className="flex-1 flex justify-center px-6">
+          <GraphSearch items={searchItems} onPick={focusNode} />
+        </div>
         <div className="flex items-center gap-3">
         <button 
           onClick={() => router.push(`/projects/${params.id}`)}
@@ -247,6 +263,7 @@ export default function ArchitecturePage({ params }: { params: { id: string } })
             nodeTypes={nodeTypes}
             onNodesChange={onNodesChange}
             onNodeClick={onNodeClick}
+            onInit={setRf}
             onPaneClick={() => setSelectedNodeId(null)}
             fitView
             fitViewOptions={{ padding: 0.05 }}

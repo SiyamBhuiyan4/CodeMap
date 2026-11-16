@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { Search, X } from 'lucide-react';
+import { Trie } from '@/lib/trie';
 import { useRouter } from 'next/navigation';
 
 interface Project {
@@ -14,6 +16,22 @@ export default function ProjectsDashboard() {
   const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState('');
+
+  // Trie over project names and descriptions for instant prefix search
+  const trie = useMemo(() => {
+    const t = new Trie<Project>((p) => p.id);
+    projects.forEach((p) => {
+      t.insert(p.name, p);
+      if (p.description) t.insert(p.description, p);
+    });
+    return t;
+  }, [projects]);
+
+  const visibleProjects = useMemo(
+    () => (query.trim() ? trie.search(query, 100, (p) => p.name) : projects),
+    [trie, query, projects]
+  );
 
   const fetchProjects = async () => {
     const token = localStorage.getItem('token');
@@ -82,6 +100,24 @@ export default function ProjectsDashboard() {
           </button>
         </header>
 
+        {projects.length > 0 && (
+          <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-2xl px-4 py-3 shadow-sm focus-within:ring-2 focus-within:ring-yellow-400 max-w-xl">
+            <Search size={18} className="text-gray-400 shrink-0" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search projects…"
+              className="flex-1 outline-none bg-transparent text-gray-800 placeholder-gray-400 min-w-0"
+              aria-label="Search projects"
+            />
+            {query && (
+              <button onClick={() => setQuery('')} className="text-gray-400 hover:text-gray-700" aria-label="Clear search">
+                <X size={16} />
+              </button>
+            )}
+          </div>
+        )}
+
         {loading ? (
           <div className="text-gray-500">Loading projects...</div>
         ) : projects.length === 0 ? (
@@ -96,8 +132,11 @@ export default function ProjectsDashboard() {
             </button>
           </div>
         ) : (
+          visibleProjects.length === 0 ? (
+          <div className="text-gray-500 py-12 text-center">No projects match “{query}”.</div>
+          ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {projects.map(p => (
+            {visibleProjects.map(p => (
               <div 
                 key={p.id} 
                 onClick={() => router.push(`/projects/${p.id}`)}
@@ -125,6 +164,7 @@ export default function ProjectsDashboard() {
               </div>
             ))}
           </div>
+          )
         )}
       </div>
     </div>
