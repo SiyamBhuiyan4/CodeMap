@@ -1,8 +1,33 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+type Job = {
+  id: string;
+  status: string;
+  stage: string | null;
+  progress: number;
+  error_message: string | null;
+  source: string;
+  source_type: string;
+};
+
+const STAGE_LABELS: Record<string, string> = {
+  DOWNLOADING: 'Downloading repository',
+  EXTRACTING: 'Extracting ZIP archive',
+  QUEUED: 'Preparing analysis',
+  SCANNING: 'Scanning files',
+  PARSING: 'Parsing source code',
+  GRAPH_BUILDING: 'Building dependency graph',
+  DETECTING_PATTERNS: 'Detecting patterns & dead code',
+  COMPLETED: 'Done',
+};
+
+const isActive = (job: Job | null) => !!job && ['PENDING', 'QUEUED', 'RUNNING'].includes(job.status);
 
 export default function ProjectDetailsPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -13,13 +38,97 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
   const [uploadedFile, setUploadedFile] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [job, setJob] = useState<Job | null>(null);
+  const [tracking, setTracking] = useState(false);
+  const ignoreJobId = useRef<string | null>(null);
+  const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const fetchLatestJob = useCallback(async (): Promise<Job | null> => {
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`${API}/api/analysis/projects/${params.id}/latest-job`, {
+        headers: { 'Authorization': `Bearer ${token}` }, cache: 'no-store'
+      });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch {
+      return null;
+    }
+  }, [params.id]);
+
+  const stopPolling = useCallback(() => {
+    if (pollTimer.current) clearInterval(pollTimer.current);
+    pollTimer.current = null;
+  }, []);
+
+  // Poll the latest job once a second until it finishes. Jobs older than the
+  // current import (ignoreJobId) are skipped so a previous result never flashes up.
+  const startPolling = useCallback(() => {
+    stopPolling();
+    const tick = async () => {
+      const latest = await fetchLatestJob();
+      if (!latest || latest.id === ignoreJobId.current) return;
+      setJob((prev) => (prev && prev.id === latest.id && prev.progress > latest.progress && isActive(latest)) ? prev : latest);
+      if (!isActive(latest)) {
+        stopPolling();
+        setTracking(false);
+        setLoading(false);
+      }
+    };
+    tick();
+    pollTimer.current = setInterval(tick, 1000);
+  }, [fetchLatestJob, stopPolling]);
+
+  useEffect(() => () => stopPolling(), [stopPolling]);
+
+  // On page load, resume showing progress if an analysis is already running,
+  // or show the "ready to view" card for the last completed one.
+  useEffect(() => {
+    (async () => {
+      const latest = await fetchLatestJob();
+      if (!latest) return;
+      setJob(latest);
+      if (isActive(latest)) {
+        setTracking(true);
+        setLoading(true);
+        startPolling();
+      }
+    })();
+  }, [fetchLatestJob, startPolling]);
+
+  const beginTracking = () => {
+    ignoreJobId.current = job?.id ?? null;
+    setJob(null);
+    setTracking(true);
+    startPolling();
+  };
+
+  const finishRequest = async (ok: boolean, message?: string) => {
+    if (!ok) {
+      stopPolling();
+      setTracking(false);
+      setLoading(false);
+      setError(message || 'Analysis failed');
+      return;
+    }
+    // Inline mode: the request returns once analysis is done; queue mode: keep polling.
+    const latest = await fetchLatestJob();
+    if (latest && latest.id !== ignoreJobId.current) {
+      setJob(latest);
+      if (!isActive(latest)) {
+        stopPolling();
+        setTracking(false);
+        setLoading(false);
+      }
+    }
+  };
 
   useEffect(() => {
     const fetchProject = async () => {
       const token = localStorage.getItem('token');
       if (!token) return router.push('/login');
       
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/projects/${params.id}`, {
+      const res = await fetch(`${API}/api/projects/${params.id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) setProject(await res.json());
@@ -32,22 +141,19 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
     e.preventDefault();
     setLoading(true);
     setError('');
+    beginTracking();
     const token = localStorage.getItem('token');
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/projects/${params.id}/repositories/github`, {
+      const res = await fetch(`${API}/api/projects/${params.id}/repositories/github`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ url: githubUrl })
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.detail || 'Import failed');
-
-      alert('Repository imported and analyzed successfully! Redirecting to Architecture Map...');
-      router.push(`/projects/${params.id}/architecture`);
+      await finishRequest(true);
     } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      await finishRequest(false, err.message);
     }
   };
 
@@ -64,23 +170,22 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
     const formData = new FormData();
     formData.append('file', file);
 
+    beginTracking();
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/projects/${params.id}/repositories/upload`, {
+      const res = await fetch(`${API}/api/projects/${params.id}/repositories/upload`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData
       });
-      
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Upload failed');
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.detail || (res.status === 413 ? 'ZIP is too large (max 4.5 MB). Import from GitHub instead.' : 'Upload failed'));
 
       setUploadedFile(file.name);
-      alert('ZIP Repository uploaded and analyzed successfully! Redirecting to Architecture Map...');
-      router.push(`/projects/${params.id}/architecture`);
+      await finishRequest(true);
     } catch (err: any) {
-      setError(err.message);
+      await finishRequest(false, err.message);
     } finally {
-      setLoading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
@@ -127,6 +232,55 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
             </Link>
           </div>
         </header>
+
+        {(tracking || job) && (
+          <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-200">
+            {(tracking && (!job || isActive(job))) ? (
+              <div>
+                <div className="flex items-baseline justify-between mb-3">
+                  <h2 className="text-xl font-medium">Analyzing repository…</h2>
+                  <span className="text-2xl font-semibold tabular-nums text-gray-900">{job?.progress ?? 0}%</span>
+                </div>
+                <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-yellow-400 rounded-full transition-[width] duration-700 ease-out"
+                    style={{ width: `${Math.max(2, job?.progress ?? 0)}%` }}
+                  />
+                </div>
+                <div className="flex justify-between mt-3 text-sm text-gray-500">
+                  <span>{STAGE_LABELS[job?.stage || ''] || 'Starting'}…</span>
+                  {job?.source && <span className="truncate max-w-[50%]" title={job.source}>{job.source}</span>}
+                </div>
+              </div>
+            ) : job?.status === 'COMPLETED' ? (
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-2xl">✓</div>
+                  <div>
+                    <h2 className="text-xl font-medium">Analysis complete</h2>
+                    <p className="text-sm text-gray-500 truncate max-w-md" title={job.source}>{job.source}</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <Link href={`/projects/${params.id}/architecture`} className="px-6 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition">
+                    View Architecture Map
+                  </Link>
+                  <Link href={`/projects/${params.id}/chat`} className="px-6 py-3 bg-white border border-gray-200 text-gray-900 rounded-xl font-medium hover:bg-gray-50 transition">
+                    Ask AI
+                  </Link>
+                </div>
+              </div>
+            ) : job?.status === 'FAILED' ? (
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-2xl">!</div>
+                <div>
+                  <h2 className="text-xl font-medium">Analysis failed</h2>
+                  <p className="text-sm text-red-600">{job.error_message || 'Something went wrong. Try importing again.'}</p>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        )}
 
         <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-200">
           <h2 className="text-xl font-medium mb-6">Ingest Repository</h2>

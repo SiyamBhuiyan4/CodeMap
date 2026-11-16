@@ -13,6 +13,16 @@ import os
 import uuid
 from collections import defaultdict
 
+def _report_progress(db: Session, job: AnalysisJob, percent: int, stage: str):
+    """Persist progress so the UI can poll it; only commits when the value changes."""
+    value = f"{max(0, min(100, int(percent)))}%"
+    if job.progress == value and job.current_stage == stage:
+        return
+    job.progress = value
+    job.current_stage = stage
+    db.commit()
+
+
 def run_analysis_pipeline(db: Session, snapshot_id: str, workspace_dir: str, job: AnalysisJob):
     parsed_snapshot_uuid = uuid.UUID(snapshot_id)
 
@@ -53,7 +63,9 @@ def run_analysis_pipeline(db: Session, snapshot_id: str, workspace_dir: str, job
     all_entity_ids = []
     entrypoint_ids = set()
     
-    for rel_path in parseable_files:
+    total_parseable = max(1, len(parseable_files))
+    for idx, rel_path in enumerate(parseable_files):
+        _report_progress(db, job, 40 + 30 * idx / total_parseable, "PARSING")
         abs_path = os.path.join(workspace_dir, rel_path)
         file_record = file_records[rel_path]
         parser = get_parser_for_path(rel_path)
@@ -177,7 +189,9 @@ def run_analysis_pipeline(db: Session, snapshot_id: str, workspace_dir: str, job
                     ))
 
     # 3. Add Call Relationships with collision-free resolution
-    for file_result in parsed_results:
+    total_results = max(1, len(parsed_results))
+    for result_idx, file_result in enumerate(parsed_results):
+        _report_progress(db, job, 72 + 18 * result_idx / total_results, "GRAPH_BUILDING")
         local_entity_map = file_result["entity_id_map"]
         imported_names = {imp["name"].split(".")[-1]: imp["name"] for imp in file_result["imports"]}
         
@@ -232,6 +246,7 @@ def run_analysis_pipeline(db: Session, snapshot_id: str, workspace_dir: str, job
                 ))
 
     # 4. Deep Graph Algorithms & Architecture Smells
+    _report_progress(db, job, 92, "DETECTING_PATTERNS")
     call_edges = [
         (str(c.caller_id), str(c.callee_id))
         for c in db.query(CallRelationship).filter(

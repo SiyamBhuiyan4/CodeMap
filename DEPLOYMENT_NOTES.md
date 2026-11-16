@@ -53,6 +53,12 @@ The graph page was slow and opened on a random corner. Changes made:
 - **Layer toggles** at the top (Structure / Calls / Imports). Calls and imports are hidden by default. Clicking a node highlights all of its links.
 - **Mini-map** is colour-coded by type, moved to the bottom-left, and drag/zoomable. The zoom controls are now top-left. The ✨ button (bottom-right) opens the AI chat.
 
+## Analysis progress bar (2026-11-16)
+- Importing a repo (GitHub or ZIP) now shows a **progress bar with %** and the current stage: Downloading > Scanning > Parsing > Building graph > Detecting patterns.
+- When it finishes, the page **does not redirect**. It shows an "Analysis complete" card with **View Architecture Map** and **Ask AI** buttons. Failures show the error.
+- Reopening a project page shows the progress if an analysis is still running, or the "complete" card for the last one.
+- Backend: the job is created before downloading. Progress is saved per file while parsing (40 to 70%) and graph building (72 to 90%). New owner-checked endpoint `GET /api/analysis/projects/{id}/latest-job`.
+
 ## What Siyam did (by hand)
 1. Asked for the app to be hosted for free, without a card, and without dropping any features.
 2. Tried Oracle Cloud first (needs a card, so dropped), then Hugging Face (Docker Spaces need PRO, so dropped).

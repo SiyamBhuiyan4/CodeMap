@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timezone
 
 from packages.shared.database import SessionLocal
 from packages.shared.models import AnalysisJob
@@ -18,12 +19,14 @@ def run_analysis_job(job_id: str, snapshot_id: str, workspace_dir: str):
             return
 
         job.status = "RUNNING"
+        job.started_at = datetime.now(timezone.utc)
         db.commit()
 
         run_analysis_pipeline(db, snapshot_id, workspace_dir, job)
 
         job.status = "COMPLETED"
         job.progress = "100%"
+        job.completed_at = datetime.now(timezone.utc)
         db.commit()
     except Exception as e:
         db.rollback()

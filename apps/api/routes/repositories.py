@@ -68,19 +68,24 @@ def import_github_repository(
     db.commit()
     db.refresh(snapshot)
 
+    # Create the job first so the UI can show the download stage while it polls
+    job = AnalysisJob(snapshot_id=snapshot.id, status="PENDING", current_stage="DOWNLOADING", progress="5%")
+    db.add(job)
+    db.commit()
+    db.refresh(job)
+
     workspace_dir = get_workspace_dir(str(snapshot.id))
     try:
         clone_repository(request.url, workspace_dir)
     except GitError as e:
+        db.delete(job)
         db.delete(snapshot)
         db.commit()
         raise HTTPException(status_code=400, detail=str(e))
 
-    # Trigger Analysis Job automatically in background
-    job = AnalysisJob(snapshot_id=snapshot.id, status="PENDING")
-    db.add(job)
+    job.current_stage = "QUEUED"
+    job.progress = "10%"
     db.commit()
-    db.refresh(job)
 
     dispatch_analysis(str(job.id), str(snapshot.id), workspace_dir)
 
@@ -108,6 +113,11 @@ def upload_zip_repository(
     db.commit()
     db.refresh(snapshot)
 
+    job = AnalysisJob(snapshot_id=snapshot.id, status="PENDING", current_stage="EXTRACTING", progress="5%")
+    db.add(job)
+    db.commit()
+    db.refresh(job)
+
     workspace_dir = get_workspace_dir(str(snapshot.id))
     temp_zip_path = os.path.join(workspace_dir, "upload.zip")
     
@@ -117,15 +127,14 @@ def upload_zip_repository(
         extract_zip(temp_zip_path, workspace_dir)
         os.remove(temp_zip_path)
     except Exception as e:
+        db.delete(job)
         db.delete(snapshot)
         db.commit()
         raise HTTPException(status_code=400, detail=f"Failed to process ZIP: {str(e)}")
 
-    # Trigger Analysis Job automatically in background
-    job = AnalysisJob(snapshot_id=snapshot.id, status="PENDING")
-    db.add(job)
+    job.current_stage = "QUEUED"
+    job.progress = "10%"
     db.commit()
-    db.refresh(job)
 
     dispatch_analysis(str(job.id), str(snapshot.id), workspace_dir)
 
