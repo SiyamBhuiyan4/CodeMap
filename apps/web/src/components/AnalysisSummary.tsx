@@ -120,26 +120,30 @@ export default function AnalysisSummary({ projectId, refreshKey }: { projectId: 
               ))}
             </div>
             {(() => {
-              // Tooltip centred over the hovered segment, kept inside the card edges
+              // Tooltip for the hovered language segment
               let offset = 0;
               for (const l of summary.languages) {
                 const width = (l.files / totalLangFiles) * 100;
                 if (l.language === hoverLang) {
-                  const center = Math.min(92, Math.max(8, offset + width / 2));
+                  // Arrow points at the exact centre of the segment; near the card edges
+                  // only the label box slides inward so it never gets cut off.
+                  const center = offset + width / 2;
+                  const align = center > 85 ? 'right' : center < 15 ? 'left' : 'center';
                   const pct = ((l.files / totalLangFiles) * 100).toFixed(1).replace(/\.0$/, '');
                   return (
-                    <div
-                      className="absolute bottom-full mb-2 -translate-x-1/2 pointer-events-none z-10"
-                      style={{ left: `${center}%` }}
-                    >
-                      <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-lg whitespace-nowrap">
+                    <div className="absolute bottom-full mb-1 pointer-events-none z-10" style={{ left: `${center}%` }}>
+                      <div
+                        className={`absolute bottom-2 bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-lg whitespace-nowrap ${
+                          align === 'right' ? 'right-0 translate-x-3' : align === 'left' ? 'left-0 -translate-x-3' : 'left-0 -translate-x-1/2'
+                        }`}
+                      >
                         <div className="flex items-center gap-2 font-medium">
                           <span className={`w-2.5 h-2.5 rounded-full ${LANG_COLORS[l.language] || 'bg-gray-300'}`} />
                           {langName(l.language)}
                         </div>
                         <div className="text-gray-300 mt-0.5">{l.files} files · {pct}%</div>
                       </div>
-                      <div className="w-2 h-2 bg-gray-900 rotate-45 mx-auto -mt-1" />
+                      <div className="absolute bottom-1 left-0 -translate-x-1/2 w-2.5 h-2.5 bg-gray-900 rotate-45" />
                     </div>
                   );
                 }
