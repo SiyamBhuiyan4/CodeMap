@@ -8,30 +8,20 @@ type Star = {
   depth: number; // 0.15 (far) .. 1 (near): how fast it drifts and how much it reacts to parallax
 };
 type Meteor = { x: number; y: number; vx: number; vy: number; life: number; maxLife: number; len: number };
-type Hill = {
-  heights: Float32Array; // ridge height (px) sampled every STEP px over one period
-  period: number;        // pattern repeats every `period` px, so scrolling is seamless
-  speed: number;         // px per second while "walking"
-  depth: number;         // parallax strength
-  fill: string;
-  rim: string;           // moonlit edge colour (alpha scaled by moonlight)
-  trees: { x: number; h: number }[];
-};
-
 const TINTS = ['255,255,255', '255,250,235', '220,230,255', '200,215,255'];
-const STEP = 6;
 const WALK_SPEED = 7; // px/s drift of the nearest star layer
 
 /**
- * Full-screen night sky behind every page, animated as if someone is walking under it:
+ * Full-screen night sky behind every page, animated as if someone is walking under it.
+ * Tapping the moon turns its light up (bright) or back down (dim, the default):
  * - stars in three depth layers drift sideways at different speeds (parallax) and twinkle
- * - three layers of moonlit hills with pine trees scroll past at the bottom
  * - mouse movement and page scroll shift the layers slightly for depth
  * - shooting stars streak across every few seconds; the moon stays put, like a real distant moon
  * Drawn on one canvas at ~30 fps, paused in hidden tabs, static under reduced motion.
  */
 export default function NightSky() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const moonRef = useRef<HTMLDivElement>(null);
   // On the architecture map the graph sits over the sky, so the moon is faded there
   const dimMoon = /\/architecture$/.test(usePathname() || '');
 
@@ -45,10 +35,8 @@ export default function NightSky() {
     let width = 0;
     let height = 0;
     let stars: Star[] = [];
-    let hills: Hill[] = [];
     let meteors: Meteor[] = [];
     let starAlpha = 1;
-    let moonlight = 0.2;
     let nextMeteorAt = performance.now() + 800 + Math.random() * 1200;
     let raf = 0;
     let last = 0;
@@ -59,25 +47,7 @@ export default function NightSky() {
     const readTheme = () => {
       const css = getComputedStyle(document.documentElement);
       const a = parseFloat(css.getPropertyValue('--star-alpha'));
-      const g = parseFloat(css.getPropertyValue('--moon-glow-a'));
       starAlpha = isNaN(a) ? 1 : a;
-      moonlight = isNaN(g) ? 0.2 : g;
-    };
-
-    // Seamless ridge: a sum of sines whose frequencies are whole multiples of the period
-    const makeRidge = (period: number, base: number, amp: number, seed: number) => {
-      const n = Math.ceil(period / STEP);
-      const heights = new Float32Array(n + 1);
-      const waves = [1, 2, 3, 5, 8, 13].map((k, i) => ({
-        k, a: amp / (i + 1.4), p: (seed * (i + 1) * 2.399) % (Math.PI * 2),
-      }));
-      for (let i = 0; i <= n; i++) {
-        const x = (i * STEP) / period;
-        let h = base;
-        for (const w of waves) h += w.a * Math.sin(2 * Math.PI * w.k * x + w.p);
-        heights[i] = Math.max(8, h);
-      }
-      return heights;
     };
 
     const build = () => {
@@ -105,26 +75,6 @@ export default function NightSky() {
           depth: big ? 1 : layer < 0.55 ? 0.15 : layer < 0.85 ? 0.45 : 0.8,
         };
       });
-
-      const period = Math.max(1400, Math.ceil(width * 1.6));
-      const scale = Math.min(1, height / 900);
-      const mk = (base: number, amp: number, seed: number, speed: number, depth: number, fill: string, rim: string, treeEvery: number, treeH: number): Hill => {
-        const heights = makeRidge(period, base * scale, amp * scale, seed);
-        const trees: { x: number; h: number }[] = [];
-        if (treeEvery > 0) {
-          for (let x = Math.random() * treeEvery; x < period; x += treeEvery * (0.35 + Math.random() * 1.3)) {
-            // Small clusters of pines
-            const cluster = 1 + Math.floor(Math.random() * 3);
-            for (let c = 0; c < cluster; c++) trees.push({ x: (x + c * 9) % period, h: (treeH * (0.6 + Math.random() * 0.7)) * scale });
-          }
-        }
-        return { heights, period, speed, depth, fill, rim, trees };
-      };
-      hills = [
-        mk(170, 70, 1.7, 9, 0.25, '#0a1638', '170,190,255', 0, 0),
-        mk(120, 48, 4.1, 20, 0.5, '#071029', '160,180,240', 70, 26),
-        mk(70, 30, 7.3, 38, 0.9, '#030816', '140,160,230', 46, 38),
-      ];
     };
 
     const spawnMeteor = () => {
@@ -166,67 +116,6 @@ export default function NightSky() {
           ctx.moveTo(x - s.r * 4, y); ctx.lineTo(x + s.r * 4, y);
           ctx.moveTo(x, y - s.r * 4); ctx.lineTo(x, y + s.r * 4);
           ctx.stroke();
-        }
-      }
-    };
-
-    const ridgeAt = (hill: Hill, worldX: number) => {
-      const p = wrap(worldX, hill.period) / STEP;
-      const i = Math.floor(p);
-      const f = p - i;
-      return hill.heights[i] * (1 - f) + hill.heights[i + 1] * f;
-    };
-
-    const drawHills = (elapsed: number) => {
-      for (const hill of hills) {
-        const offset = elapsed * hill.speed - pointerX * 20 * hill.depth;
-        const lift = pointerY * 6 * hill.depth;
-        ctx.beginPath();
-        ctx.moveTo(0, height);
-        for (let x = 0; x <= width + STEP; x += STEP) {
-          ctx.lineTo(x, height - ridgeAt(hill, x + offset) + lift);
-        }
-        ctx.lineTo(width, height);
-        ctx.closePath();
-        ctx.fillStyle = hill.fill;
-        ctx.fill();
-
-        // Moonlit rim along the ridge, stronger when the moon is bright
-        ctx.strokeStyle = `rgba(${hill.rim},${0.08 + moonlight * 0.25})`;
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        for (let x = 0; x <= width + STEP; x += STEP) {
-          const y = height - ridgeAt(hill, x + offset) + lift;
-          if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-        }
-        ctx.stroke();
-
-        // Pine trees standing on the ridge
-        if (hill.trees.length) {
-          ctx.fillStyle = hill.fill;
-          for (const tree of hill.trees) {
-            const sx = wrap(tree.x - offset, hill.period);
-            for (const x of [sx, sx - hill.period, sx + hill.period]) {
-              if (x < -20 || x > width + 20) continue;
-              const ground = height - ridgeAt(hill, x + offset) + lift + 2;
-              const h = tree.h;
-              const w = h * 0.42;
-              ctx.beginPath();
-              ctx.moveTo(x, ground - h);
-              ctx.lineTo(x + w * 0.55, ground - h * 0.55);
-              ctx.lineTo(x + w * 0.35, ground - h * 0.55);
-              ctx.lineTo(x + w * 0.75, ground - h * 0.2);
-              ctx.lineTo(x + w * 0.1, ground - h * 0.2);
-              ctx.lineTo(x + w * 0.1, ground);
-              ctx.lineTo(x - w * 0.1, ground);
-              ctx.lineTo(x - w * 0.1, ground - h * 0.2);
-              ctx.lineTo(x - w * 0.75, ground - h * 0.2);
-              ctx.lineTo(x - w * 0.35, ground - h * 0.55);
-              ctx.lineTo(x - w * 0.55, ground - h * 0.55);
-              ctx.closePath();
-              ctx.fill();
-            }
-          }
         }
       }
     };
@@ -275,7 +164,6 @@ export default function NightSky() {
           drawMeteor(m);
         }
       }
-      drawHills(elapsed);
     };
 
     const frame = (t: number) => {
@@ -296,25 +184,48 @@ export default function NightSky() {
       if (document.hidden) { cancelAnimationFrame(raf); return; }
       start();
     };
-    const onTheme = () => { readTheme(); if (reduceMotion) start(); };
     const onPointer = (e: PointerEvent) => {
       targetX = (e.clientX / width - 0.5) * 2;   // -1 .. 1
       targetY = (e.clientY / height - 0.5) * 2;
     };
 
+    // Tap the moon to turn its light up or down. The sky sits behind the page, so clicks are
+    // detected by position; clicks on buttons, links, fields, cards or the graph are ignored.
+    const INTERACTIVE = 'a,button,input,textarea,select,label,[role="button"],[role="tab"],[role="link"],.card,.react-flow,.glass-bar';
+    const onMoon = (x: number, y: number, target: EventTarget | null) => {
+      const moon = moonRef.current;
+      if (!moon || (target instanceof Element && target.closest(INTERACTIVE))) return false;
+      const r = moon.getBoundingClientRect();
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      return Math.hypot(x - cx, y - cy) <= r.width / 2;
+    };
+    const onClick = (e: MouseEvent) => {
+      if (!onMoon(e.clientX, e.clientY, e.target)) return;
+      const root = document.documentElement;
+      root.dataset.moon = root.dataset.moon === 'bright' ? 'dim' : 'bright';
+      readTheme();
+    };
+    const onHover = (e: PointerEvent) => {
+      document.documentElement.classList.toggle('moon-hover', onMoon(e.clientX, e.clientY, e.target));
+    };
+
     readTheme();
     build();
     start();
+    document.addEventListener('click', onClick);
+    window.addEventListener('pointermove', onHover, { passive: true });
     window.addEventListener('resize', onResize);
     document.addEventListener('visibilitychange', onVisibility);
-    window.addEventListener('themechange', onTheme);
     if (!reduceMotion) window.addEventListener('pointermove', onPointer, { passive: true });
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', onResize);
       document.removeEventListener('visibilitychange', onVisibility);
-      window.removeEventListener('themechange', onTheme);
       window.removeEventListener('pointermove', onPointer);
+      document.removeEventListener('click', onClick);
+      window.removeEventListener('pointermove', onHover);
+      document.documentElement.classList.remove('moon-hover');
     };
   }, []);
 
@@ -323,7 +234,7 @@ export default function NightSky() {
       <div className="night-sky__moonlight" />
       <canvas ref={canvasRef} className="night-sky__stars" />
       <div className="night-sky__moon-halo" />
-      <div className="night-sky__moon" />
+      <div ref={moonRef} className="night-sky__moon" title="Tap the moon" />
     </div>
   );
 }

@@ -8,7 +8,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Activity, Code, GitMerge, FileText, ArrowLeft, Terminal, Cpu, Network, MessageSquare, Send, Sparkles, X } from 'lucide-react';
 import CustomNode from '@/components/CustomNode';
 import UserMenu from '@/components/UserMenu';
-import ThemeToggle from '@/components/ThemeToggle';
 import ChatWidget from '@/components/ChatWidget';
 import GraphSearch, { SearchItem } from '@/components/GraphSearch';
 
@@ -249,7 +248,6 @@ export default function ArchitecturePage({ params }: { params: { id: string } })
         >
           <ArrowLeft size={16} /> Back to project
         </button>
-          <ThemeToggle />
           <UserMenu dark />
         </div>
       </header>

@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { GitBranch, Search, Sparkles, BarChart3, ArrowRight } from 'lucide-react';
 import Logo from '@/components/Logo';
-import ThemeToggle from '@/components/ThemeToggle';
 
 const FEATURES = [
   { Icon: GitBranch, title: 'Architecture map', text: 'Folders, files, modules and functions laid out as one navigable graph.' },
@@ -17,7 +16,6 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
           <Logo inverted />
           <nav className="flex items-center gap-2 sm:gap-3">
-            <ThemeToggle />
             <Link href="/login" className="btn btn-ghost">Sign in</Link>
             <Link href="/register" className="btn btn-primary">Get started</Link>
           </nav>

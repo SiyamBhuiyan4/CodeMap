@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import UserMenu, { useCurrentUser } from './UserMenu';
 import Logo from './Logo';
-import ThemeToggle from './ThemeToggle';
 
 // Pages that have their own full-screen chrome or are for signed-out visitors
 const HIDDEN = [/^\/$/, /^\/login$/, /^\/register$/, /^\/projects\/[^/]+\/architecture$/];
@@ -20,10 +19,7 @@ export default function TopBar() {
         <Link href="/projects" aria-label="CodeAtlas home">
           <Logo />
         </Link>
-        <div className="flex items-center gap-3">
-          <ThemeToggle />
-          <UserMenu />
-        </div>
+        <UserMenu />
       </div>
     </header>
   );

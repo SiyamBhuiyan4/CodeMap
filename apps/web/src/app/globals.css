@@ -9,9 +9,9 @@
 --------------------------------------------------------------------------- */
 
 /* Theme variables.
-   The UI is always dark (html.dark) and the sky is identical in both modes.
-   The sun/moon switch only changes the moonlight via html[data-moon]:
-   "bright" = day mode (strong moon glow), default = night mode (dim moon). */
+   The UI is always dark (html.dark) and the sky never changes.
+   Tapping the moon only changes its light via html[data-moon]:
+   "bright" = strong moon glow, default ("dim") = night. */
 :root {
   --background: #03050f;
   --foreground: #e2e8f0;
@@ -29,7 +29,7 @@
   color-scheme: dark;
 }
 html[data-moon="bright"] {
-  --moon-bright: 1.14;
+  --moon-bright: 1.04;
   --moon-glow-a: 0.8;
   --moon-glow-b: 0.5;
   --halo-opacity: 1;
@@ -108,6 +108,10 @@ body {
   filter: brightness(var(--moon-bright));
   transition: filter 0.8s ease, box-shadow 0.8s ease;
 }
+/* Hand cursor and a soft lift when hovering the moon over empty sky */
+html.moon-hover, html.moon-hover body { cursor: pointer; }
+html.moon-hover .night-sky__moon { filter: brightness(calc(var(--moon-bright) + 0.06)); }
+
 .night-sky[data-dim-moon] .night-sky__moon,
 .night-sky[data-dim-moon] .night-sky__moon-halo {
   opacity: 0.18;

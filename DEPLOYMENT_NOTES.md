@@ -98,8 +98,8 @@ Visual only. No features changed.
 
 ## Night-sky theme (2026-11-16)
 - Every page, including sign in, sits on an animated night sky (`components/NightSky.tsx`, mounted in `app/layout.tsx`): a gradient sky, a full moon with craters and glow, twinkling stars, and shooting stars every 4 to 10 seconds. Everything is drawn on one canvas at about 30 fps, paused in hidden tabs, and static under reduced motion.
-- **Day / night (☀️/🌙)** toggle (`components/ThemeToggle.tsx`) in the top bar, landing, auth and map headers. **Only the moonlight changes**: day mode has a bright moon with a wide glow, night mode a dim moon. The sky and the interface stay dark in both. It is saved in `localStorage` (`codeatlas.theme`), applied before first paint as `html[data-moon]`, and defaults to the system setting.
-- **Walking effect**: stars in 3 depth layers drift sideways at different speeds; 3 layers of moonlit hills with pine trees scroll past at the bottom; mouse movement and page scroll add parallax. There are up to 900 stars, and shooting stars every 1.5 to 4.5 seconds (up to 3 at once).
+- **Tap the moon** to brighten its light (strong glow); tap again to dim it. Every visit starts at night (dim). There are no toggle buttons. Clicks are detected by position, so buttons, links, cards and the graph that sit over the moon still work normally, and the cursor becomes a hand over the moon.
+- **Moving sky**: stars in 3 depth layers drift sideways at different speeds, and mouse movement and page scroll add parallax. There is no ground or hills, only sky. Up to 900 stars, and shooting stars every 1.5 to 4.5 seconds (up to 3 at once).
 - Cards are frosted dark glass. The interface is always dark (`html.dark`).
 - The moon fades on the architecture map so the graph stays readable.
 

@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { GitBranch, Search, Sparkles } from 'lucide-react';
 import Logo from './Logo';
-import ThemeToggle from './ThemeToggle';
 
 const POINTS = [
   { Icon: GitBranch, title: 'Map any repository', text: 'Import from GitHub or a ZIP and get a full architecture graph.' },
@@ -15,9 +14,8 @@ export default function AuthShell({ title, subtitle, children, footer }: {
 }) {
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="max-w-6xl w-full mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
+      <header className="max-w-6xl w-full mx-auto px-4 sm:px-8 h-20 flex items-center">
         <Link href="/"><Logo inverted /></Link>
-        <ThemeToggle />
       </header>
 
       <div className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-8 pb-12 grid lg:grid-cols-2 gap-12 items-center">
