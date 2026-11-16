@@ -35,6 +35,11 @@ const parseServerDate = (value: string) => {
   return isNaN(d.getTime()) ? null : d;
 };
 
+const LANG_NAMES: Record<string, string> = {
+  typescript: 'TypeScript', javascript: 'JavaScript', python: 'Python', unknown: 'Other', other: 'Other',
+};
+const langName = (l: string) => LANG_NAMES[l] || l.charAt(0).toUpperCase() + l.slice(1);
+
 const EXPANDED_KEY = 'codeatlas.summary.expanded';
 
 // Overview of the latest completed analysis: totals, language mix and findings.
@@ -43,6 +48,7 @@ export default function AnalysisSummary({ projectId, refreshKey }: { projectId: 
   const [showAll, setShowAll] = useState(false);
   const [filter, setFilter] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
+  const [hoverLang, setHoverLang] = useState<string | null>(null);
 
   // Remember the open/closed choice for this browser
   useEffect(() => {
@@ -100,21 +106,58 @@ export default function AnalysisSummary({ projectId, refreshKey }: { projectId: 
       {summary.languages.length > 0 && (
         <div>
           <h3 className="text-sm font-medium text-gray-700 mb-3">Languages</h3>
-          <div className="flex h-2.5 rounded-full overflow-hidden bg-gray-100">
-            {summary.languages.map((l) => (
-              <div
-                key={l.language}
-                className={LANG_COLORS[l.language] || 'bg-gray-300'}
-                style={{ width: `${(l.files / totalLangFiles) * 100}%` }}
-                title={`${l.language}: ${l.files} files`}
-              />
-            ))}
+          <div className="relative pt-1" onMouseLeave={() => setHoverLang(null)}>
+            <div className="flex h-3 rounded-full overflow-hidden bg-gray-100">
+              {summary.languages.map((l) => (
+                <div
+                  key={l.language}
+                  onMouseEnter={() => setHoverLang(l.language)}
+                  onClick={() => setHoverLang((h) => (h === l.language ? null : l.language))}
+                  className={`h-full cursor-pointer transition-opacity ${LANG_COLORS[l.language] || 'bg-gray-300'} ${hoverLang && hoverLang !== l.language ? 'opacity-40' : ''}`}
+                  style={{ width: `${(l.files / totalLangFiles) * 100}%` }}
+                  aria-label={`${langName(l.language)}: ${l.files} files`}
+                />
+              ))}
+            </div>
+            {(() => {
+              // Tooltip centred over the hovered segment, kept inside the card edges
+              let offset = 0;
+              for (const l of summary.languages) {
+                const width = (l.files / totalLangFiles) * 100;
+                if (l.language === hoverLang) {
+                  const center = Math.min(92, Math.max(8, offset + width / 2));
+                  const pct = ((l.files / totalLangFiles) * 100).toFixed(1).replace(/\.0$/, '');
+                  return (
+                    <div
+                      className="absolute bottom-full mb-2 -translate-x-1/2 pointer-events-none z-10"
+                      style={{ left: `${center}%` }}
+                    >
+                      <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-lg whitespace-nowrap">
+                        <div className="flex items-center gap-2 font-medium">
+                          <span className={`w-2.5 h-2.5 rounded-full ${LANG_COLORS[l.language] || 'bg-gray-300'}`} />
+                          {langName(l.language)}
+                        </div>
+                        <div className="text-gray-300 mt-0.5">{l.files} files · {pct}%</div>
+                      </div>
+                      <div className="w-2 h-2 bg-gray-900 rotate-45 mx-auto -mt-1" />
+                    </div>
+                  );
+                }
+                offset += width;
+              }
+              return null;
+            })()}
           </div>
           <div className="flex flex-wrap gap-x-5 gap-y-2 mt-3 text-sm text-gray-600">
             {summary.languages.map((l) => (
-              <span key={l.language} className="flex items-center gap-2">
+              <span
+                key={l.language}
+                onMouseEnter={() => setHoverLang(l.language)}
+                onMouseLeave={() => setHoverLang(null)}
+                className={`flex items-center gap-2 cursor-default transition-opacity ${hoverLang && hoverLang !== l.language ? 'opacity-40' : ''}`}
+              >
                 <span className={`w-2.5 h-2.5 rounded-full ${LANG_COLORS[l.language] || 'bg-gray-300'}`} />
-                <span className="capitalize">{l.language === 'unknown' ? 'Other' : l.language}</span>
+                <span>{langName(l.language)}</span>
                 <span className="text-gray-400">{l.files}</span>
               </span>
             ))}
