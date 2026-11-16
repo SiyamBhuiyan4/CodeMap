@@ -43,7 +43,7 @@ export function logout(router: ReturnType<typeof useRouter>) {
   router.replace('/login');
 }
 
-export default function UserMenu({ dark = false }: { dark?: boolean }) {
+export default function UserMenu() {
   const router = useRouter();
   const { me, hasToken } = useCurrentUser();
   const [open, setOpen] = useState(false);
@@ -74,42 +74,36 @@ export default function UserMenu({ dark = false }: { dark?: boolean }) {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className={`flex items-center gap-2 rounded-full pl-1 pr-3 py-1 border transition ${
-          dark
-            ? 'border-gray-700 bg-gray-900/80 text-gray-200 hover:bg-gray-800'
-            : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-        }`}
+        className="flex items-center gap-2 rounded-full pl-1 pr-3 py-1 border border-white/10 bg-[#0d1430]/80 text-slate-200 hover:bg-[#151d45] hover:border-white/20 transition-colors"
       >
-        <span className="w-7 h-7 rounded-full bg-indigo-600 text-white font-semibold flex items-center justify-center text-sm">
+        <span className="w-7 h-7 rounded-full bg-gradient-to-br from-[#8187ff] to-[#5a5ee8] text-white font-semibold flex items-center justify-center text-sm">
           {initial}
         </span>
         <span className="hidden sm:block max-w-[180px] truncate text-sm">{email || 'Account'}</span>
-        <ChevronDown size={16} className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown size={16} className={`text-slate-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && (
         <div
           role="menu"
-          className={`absolute right-0 mt-2 w-64 rounded-xl border shadow-lg overflow-hidden z-50 animate-scale-in ${
-            dark ? 'bg-gray-950 border-gray-800 text-gray-200' : 'bg-white border-slate-200 text-slate-800'
-          }`}
+          className="absolute right-0 mt-2 w-64 p-1.5 rounded-xl border border-white/10 bg-[#0b1128] text-slate-200 shadow-[0_20px_40px_-16px_rgba(0,0,0,0.8)] z-50 animate-scale-in"
         >
-          <div className={`px-4 py-3 border-b ${dark ? 'border-gray-800' : 'border-gray-100'}`}>
-            <p className={`text-xs ${dark ? 'text-gray-500' : 'text-gray-400'}`}>Signed in as</p>
-            <p className="text-sm font-medium truncate" title={email}>{email || '…'}</p>
+          <div className="px-3 py-2.5 mb-1 border-b border-white/[0.08]">
+            <p className="text-xs text-slate-500">Signed in as</p>
+            <p className="text-sm font-medium text-slate-100 truncate" title={email}>{email || '…'}</p>
           </div>
           <Link
             href="/projects"
             role="menuitem"
             onClick={() => setOpen(false)}
-            className={`flex items-center gap-3 px-4 py-3 text-sm ${dark ? 'hover:bg-gray-900' : 'hover:bg-gray-50'}`}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-200 hover:bg-[#8187ff]/15 hover:text-white transition-colors"
           >
-            <FolderKanban size={16} /> My Projects
+            <FolderKanban size={16} className="text-[#a8adff]" /> My Projects
           </Link>
           <button
             role="menuitem"
             onClick={() => logout(router)}
-            className={`w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 ${dark ? 'hover:bg-gray-900 text-red-400' : 'hover:bg-red-50'}`}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#f9a8b8] hover:bg-[#f9a8b8]/10 hover:text-[#fcc4cf] transition-colors"
           >
             <LogOut size={16} /> Log out
           </button>

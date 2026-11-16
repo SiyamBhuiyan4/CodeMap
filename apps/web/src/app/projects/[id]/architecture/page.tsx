@@ -248,7 +248,7 @@ export default function ArchitecturePage({ params }: { params: { id: string } })
         >
           <ArrowLeft size={16} /> Back to project
         </button>
-          <UserMenu dark />
+          <UserMenu />
         </div>
       </header>
 
