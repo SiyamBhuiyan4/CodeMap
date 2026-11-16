@@ -163,28 +163,3 @@ def detect_dead_code(
         if node not in has_incoming and node not in entrypoints
     ]
     return dead_nodes
-
-def detect_god_components(
-    nodes: List[str],
-    edges: List[Tuple[str, str]],
-    threshold: int = 8
-) -> List[Dict[str, Any]]:
-    """
-    Detects 'God Components' - entities/modules that are overly coupled and violate Single Responsibility.
-    """
-    coupling = compute_coupling_metrics(nodes, edges)
-    god_components = []
-    
-    for node, data in coupling.items():
-        total_connections = data["ca"] + data["ce"]
-        if total_connections >= threshold:
-            god_components.append({
-                "node_id": node,
-                "total_connections": total_connections,
-                "ca": data["ca"],
-                "ce": data["ce"],
-                "instability": data["instability"]
-            })
-            
-    god_components.sort(key=lambda x: x["total_connections"], reverse=True)
-    return god_components

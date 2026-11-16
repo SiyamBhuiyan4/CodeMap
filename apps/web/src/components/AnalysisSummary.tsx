@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { FileCode2, Layers, Box, Code2, GitMerge, Link2, AlertTriangle, Info, RefreshCcw, ChevronDown } from 'lucide-react';
+import { FileCode2, Layers, Box, Code2, GitMerge, Link2, Info, RefreshCcw, ChevronDown } from 'lucide-react';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -20,7 +20,6 @@ type Summary = {
 
 const FINDING_META: Record<string, { label: string; tone: string; Icon: typeof Info }> = {
   CIRCULAR_DEPENDENCY: { label: 'Circular dependency', tone: 'bg-red-50 text-red-700 border-red-200', Icon: RefreshCcw },
-  GOD_COMPONENT: { label: 'Oversized component', tone: 'bg-amber-50 text-amber-800 border-amber-200', Icon: AlertTriangle },
   DEAD_CODE: { label: 'Possibly unused', tone: 'bg-gray-50 text-gray-700 border-gray-200', Icon: Info },
 };
 

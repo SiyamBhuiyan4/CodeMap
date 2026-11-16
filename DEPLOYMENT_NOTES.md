@@ -70,7 +70,7 @@ The graph page was slow and opened on a random corner. Changes made:
 - Removed the "Architecture Map" / "AI Chat" buttons from the project header and the "Projects" button from the top bar.
 - AI chat is now a fixed ✨ button at the bottom-right of the project page and the architecture map. It opens a chat window there (`components/ChatWidget.tsx`). On the map, the selected node is sent as context.
 - Project page layout: the **Analysis complete** card (repo + **View Architecture Map**), then the **Analysis Summary**, then the **Re-analyze Repository** box (always visible, prefilled with the analyzed GitHub URL).
-- **Analysis Summary**: totals for files, modules, classes, functions, calls and imports; a language bar; and findings (circular dependencies, oversized components, possibly unused code) with filter chips, behind a **Show details / Hide details** toggle (closed by default; the choice is remembered in the browser). Backend: `GET /api/analysis/projects/{id}/summary` (owner-checked, latest completed analysis).
+- **Analysis Summary**: totals for files, modules, classes, functions, calls and imports; a language bar; and findings (circular dependencies, possibly unused code) with filter chips, behind a **Show details / Hide details** toggle (closed by default; the choice is remembered in the browser). Backend: `GET /api/analysis/projects/{id}/summary` (owner-checked, latest completed analysis).
 
 ## Trie search (2026-11-16)
 - `apps/web/src/lib/trie.ts`: a prefix tree. Each name is indexed whole and by each word (snake_case, camelCase, dots, slashes), so "user" finds `get_user_by_id` and `UserService`. Exact match first, then full-name prefix, then word prefix; shorter names first.

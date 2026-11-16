@@ -1,7 +1,7 @@
 import pytest
 from apps.analyzer.algorithms import (
     detect_cycles, compute_pagerank, compute_coupling_metrics,
-    detect_dead_code, detect_god_components
+    detect_dead_code
 )
 
 def test_detect_cycles():
@@ -47,12 +47,3 @@ def test_detect_dead_code():
     assert "orphan_func" in dead
     assert "used_helper" not in dead
     assert "entrypoint" not in dead
-
-def test_detect_god_components():
-    nodes = ["god"] + [f"client_{i}" for i in range(10)]
-    edges = [(f"client_{i}", "god") for i in range(10)]
-    
-    gods = detect_god_components(nodes, edges, threshold=8)
-    assert len(gods) == 1
-    assert gods[0]["node_id"] == "god"
-    assert gods[0]["total_connections"] == 10

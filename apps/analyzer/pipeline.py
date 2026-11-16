@@ -7,7 +7,7 @@ from apps.analyzer.scanner import RepositoryScanner
 from apps.analyzer.parsers import get_parser_for_path, detect_language
 from apps.analyzer.algorithms import (
     detect_cycles, compute_pagerank, compute_coupling_metrics,
-    detect_dead_code, detect_god_components
+    detect_dead_code
 )
 import os
 import uuid
@@ -280,20 +280,6 @@ def run_analysis_pipeline(db: Session, snapshot_id: str, workspace_dir: str, job
                 confidence=0.85
             ))
 
-    # C. God Component Detection
-    god_components = detect_god_components(all_entity_ids, call_edges, threshold=6)
-    for god in god_components:
-        god_uuid = uuid.UUID(god["node_id"])
-        ent = db.query(CodeEntity).filter_by(id=god_uuid).first()
-        if ent:
-            db.add(AnalysisFinding(
-                snapshot_id=parsed_snapshot_uuid,
-                type="GOD_COMPONENT",
-                severity="WARNING",
-                description=f"Entity '{ent.name}' ({ent.type}) is overly coupled with {god['total_connections']} connections (Instability: {god['instability']}).",
-                confidence=0.9
-            ))
-        
     db.commit()
     
     # --- PHASE 4: INDEXING & COMPLETION ---
