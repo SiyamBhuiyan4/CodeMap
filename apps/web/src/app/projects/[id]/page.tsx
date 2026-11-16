@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronRight, CheckCircle2, AlertCircle, ArrowRight, ArrowLeft, GitBranch, FileArchive, UploadCloud, FolderGit2, ExternalLink, Clock, CalendarDays, Download, RefreshCw } from 'lucide-react';
-import ChatWidget from '@/components/ChatWidget';
 import AnalysisSummary from '@/components/AnalysisSummary';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -490,7 +489,6 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
         </div>
       </section>
 
-      <ChatWidget projectId={params.id} />
     </div>
   );
 }

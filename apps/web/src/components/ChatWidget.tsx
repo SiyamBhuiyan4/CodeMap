@@ -6,9 +6,15 @@ import { Send, Sparkles, X } from 'lucide-react';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
+type ProjectOption = { id: string; name: string };
+
 // Floating AI chat: a fixed button at the bottom-right that opens a chat window.
-// Shared by the project page and the architecture map (where the selected node is sent as context).
-export default function ChatWidget({ projectId, contextEntityId = null }: { projectId: string; contextEntityId?: string | null }) {
+// Mounted globally for signed-in pages (components/GlobalChat.tsx) and on the architecture map
+// (where the selected node is sent as context). Without a projectId it shows a project picker.
+export default function ChatWidget({ projectId = null, contextEntityId = null }: { projectId?: string | null; contextEntityId?: string | null }) {
+  const [pickedId, setPickedId] = useState<string | null>(null);
+  const [projects, setProjects] = useState<ProjectOption[] | null>(null);
+  const activeId = projectId ?? pickedId;
   // Chat state
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState<{role: 'user'|'ai', text: string}[]>([
@@ -17,12 +23,27 @@ export default function ChatWidget({ projectId, contextEntityId = null }: { proj
   const [currentMessage, setCurrentMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
 
+  // Outside a project: load the user's projects for the picker when the chat is opened
   useEffect(() => {
+    if (projectId || !isChatOpen || projects) return;
+    const token = localStorage.getItem('token');
+    fetch(`${API}/api/projects`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => (r.ok ? r.json() : []))
+      .then((list: ProjectOption[]) => {
+        setProjects(list);
+        if (list.length && !pickedId) setPickedId(list[0].id);
+      })
+      .catch(() => setProjects([]));
+  }, [projectId, isChatOpen, projects, pickedId]);
+
+  useEffect(() => {
+    setChatMessages([{ role: 'ai', text: 'Hello! I am your CodeAtlas AI. You can ask me anything about this architecture.' }]);
+    if (!activeId) return;
     const fetchHistory = async () => {
       const token = localStorage.getItem('token');
       if (!token) return;
       try {
-        const res = await fetch(`${API}/api/projects/${projectId}/chat/messages`, {
+        const res = await fetch(`${API}/api/projects/${activeId}/chat/messages`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
@@ -39,10 +60,10 @@ export default function ChatWidget({ projectId, contextEntityId = null }: { proj
       }
     };
     fetchHistory();
-  }, [projectId]);
+  }, [activeId]);
 
   const sendMessage = async () => {
-    if (!currentMessage.trim()) return;
+    if (!currentMessage.trim() || !activeId) return;
     const newMsg = currentMessage;
     setCurrentMessage('');
     setChatMessages(prev => [...prev, { role: 'user', text: newMsg }]);
@@ -50,7 +71,7 @@ export default function ChatWidget({ projectId, contextEntityId = null }: { proj
     
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${API}/api/projects/${projectId}/chat`, {
+      const res = await fetch(`${API}/api/projects/${activeId}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ message: newMsg, context_entity_id: contextEntityId })
@@ -119,6 +140,28 @@ export default function ChatWidget({ projectId, contextEntityId = null }: { proj
               </button>
             </div>
 
+            {/* Project picker when the chat is opened outside a project */}
+            {!projectId && (
+              <div className="px-4 py-2.5 border-b border-gray-800 bg-gray-900/40">
+                {projects === null ? (
+                  <p className="text-xs text-gray-500">Loading projects…</p>
+                ) : projects.length === 0 ? (
+                  <p className="text-xs text-gray-400">Create a project first to chat about its code.</p>
+                ) : (
+                  <label className="flex items-center gap-2 text-xs text-gray-400">
+                    Project
+                    <select
+                      value={pickedId ?? ''}
+                      onChange={(e) => setPickedId(e.target.value)}
+                      className="flex-1 bg-gray-950 border border-gray-700 rounded-lg px-2.5 py-1.5 text-sm text-gray-200 focus:outline-none focus:border-[#8187ff]"
+                    >
+                      {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </select>
+                  </label>
+                )}
+              </div>
+            )}
+
             {/* Chat Messages */}
             <div ref={scrollRef} className="flex-1 p-4 overflow-y-auto flex flex-col gap-4">
               {chatMessages.map((msg, idx) => (
@@ -154,10 +197,11 @@ export default function ChatWidget({ projectId, contextEntityId = null }: { proj
                   type="text" 
                   value={currentMessage}
                   onChange={(e) => setCurrentMessage(e.target.value)}
-                  placeholder="Ask about this architecture..." 
+                  placeholder={activeId ? 'Ask about this architecture...' : 'Choose a project first'}
+                  disabled={!activeId}
                   className="flex-1 bg-transparent border-none outline-none text-sm text-gray-200 placeholder-gray-500"
                 />
-                <button type="submit" disabled={!currentMessage.trim() || isTyping} className="p-2 bg-purple-600 hover:bg-purple-500 disabled:bg-gray-700 disabled:text-gray-500 rounded-full text-white transition-colors">
+                <button type="submit" disabled={!currentMessage.trim() || isTyping || !activeId} className="p-2 bg-purple-600 hover:bg-purple-500 disabled:bg-gray-700 disabled:text-gray-500 rounded-full text-white transition-colors">
                   <Send size={14} />
                 </button>
               </form>

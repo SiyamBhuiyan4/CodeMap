@@ -114,6 +114,11 @@ One palette everywhere, defined as CSS variables in `globals.css`:
 - **Pale sky-blue** (#7cc4f5), **teal** (#5fd4c4) and **lavender** (#b49cf5) as secondaries; a muted navy (#3b4766) for neutral items.
 - Applied to: primary buttons (soft gradient and glow), the logo, the project banner (night gradient with a moon glow instead of hot purple), the progress bar, the language bar (distinct hues at equal brightness, muted "Other"), status badges, graph nodes, edges, minimap, search tags, the details panel, and the React Flow controls.
 
+## Global AI chat button (2026-11-17)
+- The ✨ AI chat button is fixed at the bottom-right of every signed-in page (`components/GlobalChat.tsx`, mounted in the layout).
+- Inside a project it chats about that project. On other pages (projects list, new project) the chat window shows a **project picker**.
+- The architecture map keeps its own chat, which sends the selected node as context. The button is hidden on signed-out pages and the full-page chat, so only one ever shows.
+
 ## What Siyam did (by hand)
 1. Asked for the app to be hosted for free, without a card, and without dropping any features.
 2. Tried Oracle Cloud first (needs a card, so dropped), then Hugging Face (Docker Spaces need PRO, so dropped).

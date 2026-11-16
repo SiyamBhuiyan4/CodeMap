@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import TopBar from "@/components/TopBar";
 import NightSky from "@/components/NightSky";
+import GlobalChat from "@/components/GlobalChat";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
@@ -22,6 +23,7 @@ export default function RootLayout({
         <NightSky />
         <TopBar />
         {children}
+        <GlobalChat />
       </body>
     </html>
   );
