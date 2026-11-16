@@ -39,3 +39,6 @@ Because the initial schema setup requires an active database connection to refle
    ```bash
    alembic upgrade head
    ```
+
+## Live deployment
+Hosted free on Vercel: https://codemap-web-peach.vercel.app. See [DEPLOYMENT_NOTES.md](DEPLOYMENT_NOTES.md).
