@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import TopBar from "@/components/TopBar";
 
 export const metadata: Metadata = {
   title: "CodeAtlas",
@@ -14,6 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-sans min-h-full flex flex-col">
+        <TopBar />
         {children}
       </body>
     </html>

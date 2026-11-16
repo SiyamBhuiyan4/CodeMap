@@ -59,6 +59,13 @@ The graph page was slow and opened on a random corner. Changes made:
 - Reopening a project page shows the progress if an analysis is still running, or the "complete" card for the last one.
 - Backend: the job is created before downloading. Progress is saved per file while parsing (40 to 70%) and graph building (72 to 90%). New owner-checked endpoint `GET /api/analysis/projects/{id}/latest-job`.
 
+## Profile bar & logout (2026-11-16)
+- Every signed-in page has a top bar: the **CodeAtlas** logo and **Projects** on the left, a profile button on the right (yellow avatar with your initial and your email).
+- Clicking the profile opens a menu: "Signed in as <email>", **My Projects**, **Log out**. Log out clears the session and goes to /login.
+- The full-screen architecture page has the same profile menu (dark style) next to "Exit Matrix".
+- If the session token has expired, you are signed out automatically and sent to /login.
+- Files: `apps/web/src/components/UserMenu.tsx`, `TopBar.tsx`, and `app/layout.tsx`.
+
 ## What Siyam did (by hand)
 1. Asked for the app to be hosted for free, without a card, and without dropping any features.
 2. Tried Oracle Cloud first (needs a card, so dropped), then Hugging Face (Docker Spaces need PRO, so dropped).

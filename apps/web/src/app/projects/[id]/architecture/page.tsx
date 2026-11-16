@@ -7,6 +7,7 @@ import 'reactflow/dist/style.css';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Activity, Code, GitMerge, FileText, ArrowLeft, Terminal, Cpu, MessageSquare, Send, Sparkles, X } from 'lucide-react';
 import CustomNode from '@/components/CustomNode';
+import UserMenu from '@/components/UserMenu';
 
 const NODE_W = 220;
 const NODE_H = 64;
@@ -283,12 +284,15 @@ export default function ArchitecturePage({ params }: { params: { id: string } })
             <p className="text-gray-400 text-xs font-mono uppercase tracking-widest mt-1">Live Telemetry & Topology Matrix</p>
           </div>
         </div>
+        <div className="flex items-center gap-3">
         <button 
           onClick={() => router.push(`/projects/${params.id}`)}
           className="flex items-center gap-2 text-sm font-medium text-gray-300 bg-gray-800/80 hover:bg-gray-700 hover:text-white px-4 py-2 rounded-lg transition-all border border-gray-700 shadow-sm"
         >
           <ArrowLeft size={16} /> Exit Matrix
         </button>
+          <UserMenu dark />
+        </div>
       </header>
 
       <div className="flex-1 flex overflow-hidden relative z-10">
