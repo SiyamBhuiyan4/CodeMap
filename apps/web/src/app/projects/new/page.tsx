@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { ChevronRight } from 'lucide-react';
 
 export default function NewProjectPage() {
   const router = useRouter();
@@ -39,52 +41,34 @@ export default function NewProjectPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] p-8 font-sans text-gray-800 flex items-center justify-center">
-      <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-200 w-full max-w-lg">
-        <h1 className="text-2xl font-medium text-gray-900 mb-6">Create New Project</h1>
-        
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100">
-            {error}
-          </div>
-        )}
+    <div className="page max-w-2xl">
+      <nav className="breadcrumb" aria-label="Breadcrumb">
+        <Link href="/projects">Projects</Link>
+        <ChevronRight size={14} />
+        <span className="text-slate-900">New project</span>
+      </nav>
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Create a project</h1>
+          <p className="page-subtitle">A project holds one codebase. You&apos;ll import the repository on the next screen.</p>
+        </div>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="card">
+        <form onSubmit={handleSubmit} className="card-body space-y-6">
+          {error && <div className="alert-error">{error}</div>}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
-            <input 
-              type="text" 
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-yellow-400" 
-              placeholder="e.g. CodeAtlas Core"
-              required 
-            />
+            <label htmlFor="name" className="label">Project name</label>
+            <input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} className="input" placeholder="e.g. Storefront web app" required />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description (Optional)</label>
-            <textarea 
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-yellow-400" 
-              placeholder="A brief description of this codebase"
-              rows={3}
-            />
+            <label htmlFor="description" className="label">Description <span className="font-normal text-slate-400">(optional)</span></label>
+            <textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} className="input resize-none" placeholder="What is this codebase about?" rows={3} />
           </div>
-          <div className="flex space-x-4 pt-4">
-            <button 
-              type="button" 
-              onClick={() => router.push('/projects')}
-              className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition"
-            >
-              Cancel
-            </button>
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="flex-1 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition disabled:opacity-50"
-            >
-              {loading ? 'Creating...' : 'Create Project'}
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2 border-t border-slate-100">
+            <button type="button" onClick={() => router.push('/projects')} className="btn btn-secondary mt-4">Cancel</button>
+            <button type="submit" disabled={loading} className="btn btn-primary mt-4">
+              {loading ? 'Creating…' : 'Create project'}
             </button>
           </div>
         </form>

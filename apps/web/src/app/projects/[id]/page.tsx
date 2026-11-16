@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { ChevronRight, CheckCircle2, AlertCircle, ArrowRight, GitBranch, FileArchive, UploadCloud } from 'lucide-react';
 import ChatWidget from '@/components/ChatWidget';
 import AnalysisSummary from '@/components/AnalysisSummary';
 
@@ -215,138 +216,150 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
     if (file) uploadFile(file);
   };
 
-  if (!project) return <div className="p-8">Loading...</div>;
+  if (!project) {
+    return (
+      <div className="page">
+        <div className="h-4 w-32 bg-slate-200 rounded animate-pulse" />
+        <div className="h-8 w-64 bg-slate-200 rounded mt-4 animate-pulse" />
+        <div className="card h-32 mt-8 animate-pulse" />
+      </div>
+    );
+  }
+
+  const analyzing = tracking && (!job || isActive(job));
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] p-8 font-sans text-gray-800">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <header className="flex justify-between items-center">
-          <div>
-            <Link href="/projects" className="text-sm text-gray-400 hover:text-gray-700 mb-2 inline-block">← Back to Projects</Link>
-            <h1 className="text-3xl font-medium text-gray-900">{project.name}</h1>
-            <p className="text-gray-500 mt-2">{project.description || 'No description'}</p>
-          </div>
-        </header>
+    <div className="page max-w-5xl space-y-6">
+      <div>
+        <nav className="breadcrumb" aria-label="Breadcrumb">
+          <Link href="/projects">Projects</Link>
+          <ChevronRight size={14} />
+          <span className="text-slate-900 truncate">{project.name}</span>
+        </nav>
+        <h1 className="page-title">{project.name}</h1>
+        <p className="page-subtitle">{project.description || 'No description'}</p>
+      </div>
 
-        {(tracking || job) && (
-          <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-200">
-            {(tracking && (!job || isActive(job))) ? (
-              <div>
-                <div className="flex items-baseline justify-between mb-3">
-                  <h2 className="text-xl font-medium">Analyzing repository…</h2>
-                  <span className="text-2xl font-semibold tabular-nums text-gray-900">{job?.progress ?? 0}%</span>
-                </div>
-                <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-yellow-400 rounded-full transition-[width] duration-700 ease-out"
-                    style={{ width: `${Math.max(2, job?.progress ?? 0)}%` }}
-                  />
-                </div>
-                <div className="flex justify-between mt-3 text-sm text-gray-500">
-                  <span>{STAGE_LABELS[job?.stage || ''] || 'Starting'}…</span>
-                  {job?.source && <span className="truncate max-w-[50%]" title={job.source}>{job.source}</span>}
-                </div>
-              </div>
-            ) : job?.status === 'COMPLETED' ? (
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-2xl">✓</div>
-                  <div>
-                    <h2 className="text-xl font-medium">Analysis complete</h2>
-                    <p className="text-sm text-gray-500 truncate max-w-md" title={job.source}>{job.source}</p>
-                  </div>
-                </div>
-                <Link href={`/projects/${params.id}/architecture`} className="px-6 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition text-center">
-                  View Architecture Map
-                </Link>
-              </div>
-            ) : job?.status === 'FAILED' ? (
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-2xl">!</div>
+      {(tracking || job) && (
+        <section className="card card-body">
+          {analyzing ? (
+            <div>
+              <div className="flex items-end justify-between mb-4">
                 <div>
-                  <h2 className="text-xl font-medium">Analysis failed</h2>
-                  <p className="text-sm text-red-600">{job.error_message || 'Something went wrong. Try importing again.'}</p>
+                  <h2 className="card-title">Analyzing repository</h2>
+                  <p className="card-subtitle">{STAGE_LABELS[job?.stage || ''] || 'Starting'}…</p>
+                </div>
+                <span className="text-3xl font-semibold tabular-nums text-slate-900">{job?.progress ?? 0}%</span>
+              </div>
+              <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden" role="progressbar" aria-valuenow={job?.progress ?? 0} aria-valuemin={0} aria-valuemax={100}>
+                <div
+                  className="h-full bg-indigo-600 rounded-full transition-[width] duration-700 ease-out"
+                  style={{ width: `${Math.max(2, job?.progress ?? 0)}%` }}
+                />
+              </div>
+              {job?.source && <p className="mt-3 text-xs text-slate-500 truncate" title={job.source}>{job.source}</p>}
+            </div>
+          ) : job?.status === 'COMPLETED' ? (
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
+              <div className="flex items-center gap-4 min-w-0">
+                <span className="w-11 h-11 shrink-0 rounded-full bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200 flex items-center justify-center">
+                  <CheckCircle2 size={22} />
+                </span>
+                <div className="min-w-0">
+                  <h2 className="card-title">Analysis complete</h2>
+                  <p className="text-sm text-slate-500 truncate" title={job.source}>{job.source}</p>
                 </div>
               </div>
-            ) : null}
-          </div>
-        )}
+              <Link href={`/projects/${params.id}/architecture`} className="btn btn-primary">
+                View architecture map <ArrowRight size={16} />
+              </Link>
+            </div>
+          ) : job?.status === 'FAILED' ? (
+            <div className="flex items-center gap-4">
+              <span className="w-11 h-11 shrink-0 rounded-full bg-red-50 text-red-600 ring-1 ring-red-200 flex items-center justify-center">
+                <AlertCircle size={22} />
+              </span>
+              <div>
+                <h2 className="card-title">Analysis failed</h2>
+                <p className="text-sm text-red-600">{job.error_message || 'Something went wrong. Try importing again.'}</p>
+              </div>
+            </div>
+          ) : null}
+        </section>
+      )}
 
-        {job?.status === 'COMPLETED' && !tracking && (
-          <AnalysisSummary projectId={params.id} refreshKey={job.id} />
-        )}
+      {job?.status === 'COMPLETED' && !tracking && (
+        <AnalysisSummary projectId={params.id} refreshKey={job.id} />
+      )}
 
-        <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-200">
-          <div className="mb-6">
-            <h2 className="text-xl font-medium">{job?.status === 'COMPLETED' ? 'Re-analyze Repository' : 'Ingest Repository'}</h2>
-            {job?.status === 'COMPLETED' && (
-              <p className="text-sm text-gray-500 mt-1">Pushed new code? Import again to refresh the map and summary.</p>
+      <section className="card card-body">
+        <div className="mb-6">
+          <h2 className="card-title">{job?.status === 'COMPLETED' ? 'Re-analyze repository' : 'Import a repository'}</h2>
+          <p className="card-subtitle">
+            {job?.status === 'COMPLETED'
+              ? 'Pushed new code? Import again to refresh the map and summary.'
+              : 'Import from GitHub or upload a ZIP archive to analyze the code.'}
+          </p>
+        </div>
+        {error && <div className="alert-error mb-6">{error}</div>}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <form onSubmit={handleGithubImport} className="flex flex-col">
+            <label htmlFor="github-url" className="label flex items-center gap-2"><GitBranch size={16} /> GitHub repository</label>
+            <input
+              id="github-url"
+              type="text"
+              value={githubUrl}
+              onChange={(e) => setGithubUrl(e.target.value)}
+              placeholder="https://github.com/user/repo"
+              className="input"
+              required
+              disabled={loading}
+            />
+            <p className="text-xs text-slate-500 mt-2">Public repositories only.</p>
+            <button disabled={loading} className="btn btn-primary w-full mt-6">
+              {loading ? 'Processing…' : 'Import & analyze'}
+            </button>
+          </form>
+
+          <div className="flex flex-col">
+            <span className="label flex items-center gap-2"><FileArchive size={16} /> ZIP archive</span>
+            {uploadedFile ? (
+              <div className="flex-1 rounded-xl border border-emerald-200 bg-emerald-50 p-6 text-center flex flex-col items-center justify-center">
+                <CheckCircle2 size={24} className="text-emerald-600" />
+                <p className="mt-2 text-sm font-medium text-emerald-800">Uploaded</p>
+                <p className="text-xs text-emerald-700 mt-0.5 truncate max-w-full">{uploadedFile}</p>
+                <button onClick={() => setUploadedFile(null)} className="mt-3 text-xs font-medium text-emerald-700 hover:text-emerald-900 underline underline-offset-4">
+                  Upload another file
+                </button>
+              </div>
+            ) : (
+              <div
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click(); }}
+                className={`flex-1 rounded-xl border-2 border-dashed p-6 text-center transition cursor-pointer flex flex-col items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
+                  isDragging ? 'border-indigo-400 bg-indigo-50' : 'border-slate-300 hover:border-slate-400 hover:bg-slate-50'
+                }`}
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                <span className="w-10 h-10 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center">
+                  <UploadCloud size={20} />
+                </span>
+                <p className="mt-3 text-sm font-medium text-slate-700">
+                  {loading ? 'Uploading…' : isDragging ? 'Drop the ZIP file here' : <>Click to upload <span className="font-normal text-slate-500">or drag and drop</span></>}
+                </p>
+                <p className="text-xs text-slate-500 mt-1">.zip up to 4.5 MB</p>
+                <input type="file" accept=".zip" ref={fileInputRef} onChange={handleZipUpload} className="hidden" disabled={loading} />
+              </div>
             )}
           </div>
-          {error && <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm">{error}</div>}
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <form onSubmit={handleGithubImport} className="space-y-4">
-              <h3 className="font-medium text-gray-700">Import from GitHub</h3>
-              <input 
-                type="text" 
-                value={githubUrl}
-                onChange={(e) => setGithubUrl(e.target.value)}
-                placeholder="https://github.com/user/repo"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                required 
-                disabled={loading}
-              />
-              <button disabled={loading} className="w-full py-3 bg-yellow-400 text-gray-900 font-medium rounded-xl hover:bg-yellow-500 transition disabled:opacity-50">
-                {loading ? 'Processing...' : 'Import & Analyze'}
-              </button>
-            </form>
-
-            <div className="space-y-4">
-              <h3 className="font-medium text-gray-700">Upload ZIP Archive</h3>
-              
-              {uploadedFile ? (
-                <div className="border-2 border-green-300 bg-green-50 rounded-xl p-8 text-center flex flex-col items-center justify-center">
-                  <span className="text-3xl mb-2">✅</span>
-                  <p className="font-medium text-green-800">File Uploaded</p>
-                  <p className="text-sm text-green-600 mt-1">{uploadedFile}</p>
-                  <button 
-                    onClick={() => setUploadedFile(null)}
-                    className="mt-4 text-sm text-green-700 underline hover:text-green-900"
-                  >
-                    Upload another file
-                  </button>
-                </div>
-              ) : (
-                <div 
-                  className={`border-2 border-dashed rounded-xl p-8 text-center transition cursor-pointer flex flex-col items-center justify-center relative overflow-hidden ${
-                    isDragging ? 'border-yellow-400 bg-yellow-50' : 'border-gray-300 text-gray-500 hover:bg-gray-50 hover:border-gray-400'
-                  }`}
-                  onClick={() => fileInputRef.current?.click()}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                >
-                  <span className="text-3xl mb-2">{isDragging ? '📥' : '📁'}</span>
-                  <p className="font-medium text-gray-700">
-                    {loading ? 'Uploading...' : isDragging ? 'Drop ZIP file here' : 'Click or Drag & Drop ZIP'}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">Extracts and analyzes code automatically</p>
-                  
-                  <input 
-                    type="file" 
-                    accept=".zip" 
-                    ref={fileInputRef}
-                    onChange={handleZipUpload}
-                    className="hidden"
-                    disabled={loading}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
         </div>
-      </div>
+      </section>
+
       <ChatWidget projectId={params.id} />
     </div>
   );

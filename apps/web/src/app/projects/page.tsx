@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Search, X } from 'lucide-react';
+import { Search, X, Plus, FolderGit2, Trash2, ArrowRight } from 'lucide-react';
 import { Trie } from '@/lib/trie';
 import { useRouter } from 'next/navigation';
 
@@ -88,85 +88,93 @@ export default function ProjectsDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] p-8 font-sans text-gray-800">
-      <div className="max-w-6xl mx-auto space-y-8">
-        <header className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-light text-gray-900">Your Projects</h1>
-          <button 
-            onClick={() => router.push('/projects/new')}
-            className="px-6 py-2 bg-yellow-400 text-gray-900 rounded-full font-medium shadow-sm hover:bg-yellow-500 transition"
-          >
-            + New Project
-          </button>
-        </header>
-
-        {projects.length > 0 && (
-          <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-2xl px-4 py-3 shadow-sm focus-within:ring-2 focus-within:ring-yellow-400 max-w-xl">
-            <Search size={18} className="text-gray-400 shrink-0" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search projects…"
-              className="flex-1 outline-none bg-transparent text-gray-800 placeholder-gray-400 min-w-0"
-              aria-label="Search projects"
-            />
-            {query && (
-              <button onClick={() => setQuery('')} className="text-gray-400 hover:text-gray-700" aria-label="Clear search">
-                <X size={16} />
-              </button>
-            )}
-          </div>
-        )}
-
-        {loading ? (
-          <div className="text-gray-500">Loading projects...</div>
-        ) : projects.length === 0 ? (
-          <div className="bg-white rounded-3xl p-12 text-center border border-gray-200 shadow-sm">
-            <h2 className="text-xl font-medium text-gray-700 mb-2">No projects yet</h2>
-            <p className="text-gray-500 mb-6">Get started by creating your first CodeAtlas project.</p>
-            <button 
-              onClick={() => router.push('/projects/new')}
-              className="px-6 py-2 bg-gray-900 text-white rounded-full font-medium hover:bg-gray-800 transition"
-            >
-              Create Project
-            </button>
-          </div>
-        ) : (
-          visibleProjects.length === 0 ? (
-          <div className="text-gray-500 py-12 text-center">No projects match “{query}”.</div>
-          ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {visibleProjects.map(p => (
-              <div 
-                key={p.id} 
-                onClick={() => router.push(`/projects/${p.id}`)}
-                className="bg-white rounded-3xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition cursor-pointer relative group"
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-xl font-medium pr-8">{p.name}</h3>
-                  <button 
-                    onClick={(e) => handleDelete(e, p.id)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full absolute top-4 right-4"
-                    title="Delete Project"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="3 6 5 6 21 6"></polyline>
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    </svg>
-                  </button>
-                </div>
-                
-                <p className="text-gray-500 text-sm mb-4 line-clamp-2">{p.description || 'No description provided.'}</p>
-                <div className="flex justify-between items-center text-xs text-gray-400 mt-auto pt-4 border-t border-gray-100">
-                  <span>{new Date(p.created_at).toLocaleDateString()}</span>
-                  <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded">Active</span>
-                </div>
-              </div>
-            ))}
-          </div>
-          )
-        )}
+    <div className="page">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Projects</h1>
+          <p className="page-subtitle">Each project maps one codebase. Open a project to view its architecture.</p>
+        </div>
+        <button onClick={() => router.push('/projects/new')} className="btn btn-primary">
+          <Plus size={16} /> New project
+        </button>
       </div>
+
+      {projects.length > 0 && (
+        <div className="relative max-w-md mb-6">
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search projects…"
+            className="input pl-10 pr-9"
+            aria-label="Search projects"
+          />
+          {query && (
+            <button onClick={() => setQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700" aria-label="Clear search">
+              <X size={16} />
+            </button>
+          )}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="card p-6 h-40 animate-pulse">
+              <div className="h-4 w-1/2 bg-slate-200 rounded" />
+              <div className="h-3 w-3/4 bg-slate-100 rounded mt-4" />
+            </div>
+          ))}
+        </div>
+      ) : projects.length === 0 ? (
+        <div className="card card-body text-center py-16">
+          <span className="w-12 h-12 mx-auto rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+            <FolderGit2 size={24} />
+          </span>
+          <h2 className="mt-4 text-lg font-semibold text-slate-900">No projects yet</h2>
+          <p className="mt-1 text-sm text-slate-500">Create a project and import a repository to see its architecture.</p>
+          <button onClick={() => router.push('/projects/new')} className="btn btn-primary mt-6">
+            <Plus size={16} /> Create your first project
+          </button>
+        </div>
+      ) : visibleProjects.length === 0 ? (
+        <div className="card card-body text-center text-sm text-slate-500">No projects match “{query}”.</div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {visibleProjects.map((p) => (
+            <div
+              key={p.id}
+              role="link"
+              tabIndex={0}
+              onClick={() => router.push(`/projects/${p.id}`)}
+              onKeyDown={(e) => { if (e.key === 'Enter') router.push(`/projects/${p.id}`); }}
+              className="card p-6 flex flex-col cursor-pointer group hover:border-indigo-300 hover:shadow-md transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <span className="w-10 h-10 shrink-0 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                  <FolderGit2 size={20} />
+                </span>
+                <button
+                  onClick={(e) => handleDelete(e, p.id)}
+                  className="p-2 -mr-2 -mt-2 rounded-lg text-slate-400 opacity-0 group-hover:opacity-100 focus:opacity-100 hover:text-red-600 hover:bg-red-50 transition"
+                  title="Delete project"
+                  aria-label={`Delete ${p.name}`}
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+              <h3 className="mt-4 font-semibold text-slate-900 truncate">{p.name}</h3>
+              <p className="mt-1 text-sm text-slate-500 line-clamp-2 min-h-[2.5rem]">{p.description || 'No description'}</p>
+              <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                <span>Created {new Date(p.created_at).toLocaleDateString()}</span>
+                <span className="inline-flex items-center gap-1 font-medium text-indigo-600 opacity-0 group-hover:opacity-100 transition">
+                  Open <ArrowRight size={14} />
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

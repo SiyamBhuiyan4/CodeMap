@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import AuthShell from '@/components/AuthShell';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -35,58 +37,25 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f8f9fa] to-[#fff4cc] flex items-center justify-center p-4">
-      <div className="bg-white/80 backdrop-blur-md rounded-3xl p-8 shadow-sm border border-white/50 w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-block text-xl font-semibold tracking-tight text-gray-900 border border-gray-300 rounded-full px-4 py-1 mb-4">
-            CodeAtlas
-          </div>
-          <h1 className="text-3xl font-light text-gray-900">Welcome Back</h1>
-          <p className="text-gray-500 mt-2 text-sm">Sign in to your account</p>
-        </div>
-
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm text-center border border-red-100">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleLogin} className="space-y-4">
+    <AuthShell
+      title="Welcome back"
+      subtitle="Sign in to continue to your projects."
+      footer={<>Don&apos;t have an account? <Link href="/register" className="font-medium text-indigo-600 hover:text-indigo-700">Create one</Link></>}
+    >
+      {error && <div className="alert-error mb-6">{error}</div>}
+      <form onSubmit={handleLogin} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input 
-              type="email" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-yellow-400 bg-white/50" 
-              placeholder="you@example.com"
-              required 
-            />
+            <label htmlFor="email" className="label">Email</label>
+            <input id="email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className="input" placeholder="you@example.com" required />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input 
-              type="password" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-yellow-400 bg-white/50" 
-              placeholder="••••••••"
-              required 
-            />
+            <label htmlFor="password" className="label">Password</label>
+            <input id="password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} className="input" placeholder="••••••••" required />
           </div>
-          <button 
-            type="submit" 
-            disabled={loading}
-            className="w-full py-3 bg-gray-900 text-white rounded-2xl font-medium hover:bg-gray-800 transition disabled:opacity-50"
-          >
-            {loading ? 'Signing in...' : 'Sign In'}
-          </button>
-        </form>
-
-        <p className="mt-6 text-center text-sm text-gray-500">
-          Don't have an account? <a href="/register" className="text-gray-900 font-medium hover:underline">Register</a>
-        </p>
-      </div>
-    </div>
+        <button type="submit" disabled={loading} className="btn btn-primary w-full">
+          {loading ? 'Signing in…' : 'Sign in'}
+        </button>
+      </form>
+    </AuthShell>
   );
 }

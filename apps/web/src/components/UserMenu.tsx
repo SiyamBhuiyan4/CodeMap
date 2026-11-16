@@ -77,10 +77,10 @@ export default function UserMenu({ dark = false }: { dark?: boolean }) {
         className={`flex items-center gap-2 rounded-full pl-1 pr-3 py-1 border transition ${
           dark
             ? 'border-gray-700 bg-gray-900/80 text-gray-200 hover:bg-gray-800'
-            : 'border-gray-200 bg-white text-gray-800 hover:bg-gray-50'
+            : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
         }`}
       >
-        <span className="w-8 h-8 rounded-full bg-yellow-400 text-gray-900 font-semibold flex items-center justify-center text-sm">
+        <span className="w-7 h-7 rounded-full bg-indigo-600 text-white font-semibold flex items-center justify-center text-sm">
           {initial}
         </span>
         <span className="hidden sm:block max-w-[180px] truncate text-sm">{email || 'Account'}</span>
@@ -90,8 +90,8 @@ export default function UserMenu({ dark = false }: { dark?: boolean }) {
       {open && (
         <div
           role="menu"
-          className={`absolute right-0 mt-2 w-64 rounded-2xl border shadow-lg overflow-hidden z-50 ${
-            dark ? 'bg-gray-950 border-gray-800 text-gray-200' : 'bg-white border-gray-200 text-gray-800'
+          className={`absolute right-0 mt-2 w-64 rounded-xl border shadow-lg overflow-hidden z-50 ${
+            dark ? 'bg-gray-950 border-gray-800 text-gray-200' : 'bg-white border-slate-200 text-slate-800'
           }`}
         >
           <div className={`px-4 py-3 border-b ${dark ? 'border-gray-800' : 'border-gray-100'}`}>

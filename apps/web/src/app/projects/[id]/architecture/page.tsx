@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import ReactFlow, { Background, Controls, MiniMap, useNodesState, MarkerType, ReactFlowInstance } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Code, GitMerge, FileText, ArrowLeft, Terminal, Cpu, MessageSquare, Send, Sparkles, X } from 'lucide-react';
+import { Activity, Code, GitMerge, FileText, ArrowLeft, Terminal, Cpu, Network, MessageSquare, Send, Sparkles, X } from 'lucide-react';
 import CustomNode from '@/components/CustomNode';
 import UserMenu from '@/components/UserMenu';
 import ChatWidget from '@/components/ChatWidget';
@@ -218,8 +218,8 @@ export default function ArchitecturePage({ params }: { params: { id: string } })
     return (
       <div className="h-screen bg-[#050505] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-cyan-400 font-mono tracking-widest text-sm uppercase">{loadingStage}</p>
+          <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-slate-300 text-sm">{loadingStage}</p>
         </div>
       </div>
     );
@@ -230,14 +230,14 @@ export default function ArchitecturePage({ params }: { params: { id: string } })
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-blue-600/20 rounded-full blur-[120px] pointer-events-none z-0"></div>
       <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-purple-600/20 rounded-full blur-[120px] pointer-events-none z-0"></div>
 
-      <header className="p-5 border-b border-gray-800/60 bg-gray-950/40 backdrop-blur-md z-10 flex justify-between items-center relative shadow-md">
+      <header className="px-5 py-3 border-b border-slate-800 bg-slate-950 z-10 flex justify-between items-center relative">
         <div className="flex items-center gap-4">
-          <div className="p-2 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg shadow-[0_0_15px_rgba(6,182,212,0.4)]">
-            <Cpu size={20} className="text-white" />
+          <div className="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center">
+            <Network size={18} className="text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-white tracking-wide">CodeAtlas Engine</h1>
-            <p className="text-gray-400 text-xs font-mono uppercase tracking-widest mt-1">Live Telemetry & Topology Matrix</p>
+            <h1 className="text-lg font-semibold text-white tracking-tight">Architecture map</h1>
+            <p className="text-slate-400 text-xs mt-0.5">Structure, calls and imports of this codebase</p>
           </div>
         </div>
         <div className="flex-1 flex justify-center px-6">
@@ -248,7 +248,7 @@ export default function ArchitecturePage({ params }: { params: { id: string } })
           onClick={() => router.push(`/projects/${params.id}`)}
           className="flex items-center gap-2 text-sm font-medium text-gray-300 bg-gray-800/80 hover:bg-gray-700 hover:text-white px-4 py-2 rounded-lg transition-all border border-gray-700 shadow-sm"
         >
-          <ArrowLeft size={16} /> Exit Matrix
+          <ArrowLeft size={16} /> Back to project
         </button>
           <UserMenu dark />
         </div>

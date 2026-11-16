@@ -77,6 +77,18 @@ The graph page was slow and opened on a random corner. Changes made:
 - **Architecture map**: a search box in the header (press `/` to focus). Picking a result zooms to the node, selects it and opens its details. Arrow keys, Enter and Esc work.
 - **Projects page**: a search bar filters projects by name or description.
 
+## Professional redesign (2026-11-16)
+Visual only. No features changed.
+- Design system in `apps/web/src/app/globals.css`: Inter font, slate neutrals, one indigo accent, and shared classes (`page`, `card`, `btn btn-primary/secondary/ghost`, `input`, `label`, `breadcrumb`, `alert-error`, `badge`).
+- New `Logo` (indigo mark + wordmark) used in the top bar, auth screens and landing page.
+- Landing page: hero, call-to-action buttons, and 4 feature cards.
+- Sign in / sign up: split screen (dark brand panel + form), via `components/AuthShell.tsx`.
+- Projects: page header, search, skeleton loading, cards with icon, delete on hover and "Open →".
+- Project page: breadcrumb, status card with progress bar, summary, and an import section with GitHub + ZIP drop zone.
+- Chat page restyled. It also now reads the API's `reply` field (it previously showed "undefined").
+- Architecture map header: "Architecture map" / "Back to project" (was "CodeAtlas Engine" / "Exit Matrix").
+- The ✨ AI chat button is unchanged.
+
 ## What Siyam did (by hand)
 1. Asked for the app to be hosted for free, without a card, and without dropping any features.
 2. Tried Oracle Cloud first (needs a card, so dropped), then Hugging Face (Docker Spaces need PRO, so dropped).

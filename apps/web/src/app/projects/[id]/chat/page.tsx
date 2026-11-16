@@ -1,6 +1,8 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { ChevronRight, Send, Sparkles } from 'lucide-react';
 
 export default function ChatPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -35,7 +37,7 @@ export default function ChatPage({ params }: { params: { id: string } }) {
       const data = await res.json();
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: data.response,
+        content: data.reply ?? data.response ?? 'No answer was returned.',
         sources: data.sources 
       }]);
     } catch (err) {
@@ -46,22 +48,30 @@ export default function ChatPage({ params }: { params: { id: string } }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] p-8 flex justify-center font-sans text-gray-800">
-      <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-200 w-full max-w-3xl flex flex-col h-[80vh]">
-        <header className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-medium text-gray-900">AI Assistant</h1>
-          <button onClick={() => router.push(`/projects/${params.id}`)} className="text-sm text-gray-500 hover:text-gray-900">
-            ← Back to Project
-          </button>
-        </header>
+    <div className="page max-w-4xl flex flex-col" style={{ height: 'calc(100vh - 4rem)' }}>
+      <nav className="breadcrumb" aria-label="Breadcrumb">
+        <Link href="/projects">Projects</Link>
+        <ChevronRight size={14} />
+        <Link href={`/projects/${params.id}`}>Project</Link>
+        <ChevronRight size={14} />
+        <span className="text-slate-900">AI assistant</span>
+      </nav>
+      <div className="flex items-center gap-3 mb-6">
+        <span className="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center"><Sparkles size={20} /></span>
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight text-slate-900">AI assistant</h1>
+          <p className="text-sm text-slate-500">Answers are grounded in this repository.</p>
+        </div>
+      </div>
 
-        <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
+      <div className="card flex-1 flex flex-col min-h-0">
+        <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {messages.map((m, i) => (
-            <div key={i} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
-              <div className={`p-4 rounded-2xl max-w-[85%] ${m.role === 'user' ? 'bg-gray-900 text-white rounded-br-sm' : 'bg-gray-100 text-gray-800 rounded-bl-sm'}`}>
+            <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`px-4 py-3 rounded-2xl max-w-[85%] text-sm leading-relaxed ${m.role === 'user' ? 'bg-indigo-600 text-white rounded-br-md' : 'bg-slate-100 text-slate-800 rounded-bl-md'}`}>
                 <div className="whitespace-pre-wrap">{m.content}</div>
                 {m.sources && m.sources.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-gray-200 text-xs text-gray-500">
+                  <div className="mt-3 pt-3 border-t border-slate-200 text-xs text-slate-500">
                     <span className="font-semibold">Sources:</span> {m.sources.join(', ')}
                   </div>
                 )}
@@ -69,28 +79,24 @@ export default function ChatPage({ params }: { params: { id: string } }) {
             </div>
           ))}
           {loading && (
-            <div className="flex items-start">
-              <div className="p-4 rounded-2xl bg-gray-100 text-gray-500 rounded-bl-sm animate-pulse">
-                Thinking...
-              </div>
+            <div className="flex justify-start">
+              <div className="px-4 py-3 rounded-2xl rounded-bl-md bg-slate-100 text-slate-500 text-sm animate-pulse">Thinking…</div>
             </div>
           )}
         </div>
 
-        <form onSubmit={handleSend} className="flex space-x-2 pt-2 border-t border-gray-100">
-          <input 
-            type="text" 
+        <form onSubmit={handleSend} className="flex gap-2 p-4 border-t border-slate-200">
+          <input
+            type="text"
             value={input}
-            onChange={e => setInput(e.target.value)}
+            onChange={(e) => setInput(e.target.value)}
             disabled={loading}
-            className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-yellow-400 bg-gray-50"
-            placeholder="Ask about the codebase..."
+            className="input flex-1"
+            placeholder="Ask about the codebase…"
+            aria-label="Message"
           />
-          <button 
-            disabled={loading || !input.trim()} 
-            className="px-6 py-3 bg-yellow-400 text-gray-900 font-medium rounded-xl hover:bg-yellow-500 transition disabled:opacity-50"
-          >
-            Send
+          <button disabled={loading || !input.trim()} className="btn btn-primary">
+            <Send size={16} /> Send
           </button>
         </form>
       </div>
