@@ -96,6 +96,14 @@ Visual only. No features changed.
 - Project header gradient slowly drifts. The analysis progress bar has a moving shine, and the "Analyzing" badge dot pings.
 - Summary numbers count up, and the language bar grows into place. The profile menu pops open.
 
+## Night-sky theme (2026-11-16)
+- Every page, including sign in, sits on an animated night sky (`components/NightSky.tsx`, mounted in `app/layout.tsx`): a gradient sky, a full moon with craters and glow, twinkling stars, and shooting stars every 4 to 10 seconds. Everything is drawn on one canvas at about 30 fps, paused in hidden tabs, and static under reduced motion.
+- **Light / dark mode** toggle (☀️/🌙, `components/ThemeToggle.tsx`) in the top bar, landing, auth and map headers. It is saved in `localStorage` (`codeatlas.theme`), applied before first paint, and defaults to the system setting.
+  - Light mode: a lighter moonlit blue sky, a bright moon with a large glow, and fewer visible stars.
+  - Dark mode: a near-black sky, dim moonlight, and brighter stars.
+- Cards are frosted glass (white in light mode, deep navy in dark mode). Text on the sky stays light. Dark-mode colours are remapped centrally in `globals.css`.
+- The moon fades on the architecture map so the graph stays readable.
+
 ## What Siyam did (by hand)
 1. Asked for the app to be hosted for free, without a card, and without dropping any features.
 2. Tried Oracle Cloud first (needs a card, so dropped), then Hugging Face (Docker Spaces need PRO, so dropped).

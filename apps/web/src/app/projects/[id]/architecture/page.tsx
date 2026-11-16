@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Activity, Code, GitMerge, FileText, ArrowLeft, Terminal, Cpu, Network, MessageSquare, Send, Sparkles, X } from 'lucide-react';
 import CustomNode from '@/components/CustomNode';
 import UserMenu from '@/components/UserMenu';
+import ThemeToggle from '@/components/ThemeToggle';
 import ChatWidget from '@/components/ChatWidget';
 import GraphSearch, { SearchItem } from '@/components/GraphSearch';
 
@@ -216,7 +217,7 @@ export default function ArchitecturePage({ params }: { params: { id: string } })
 
   if (loading) {
     return (
-      <div className="h-screen bg-[#050505] flex items-center justify-center">
+      <div className="h-screen bg-transparent flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
           <p className="text-slate-300 text-sm">{loadingStage}</p>
@@ -226,11 +227,9 @@ export default function ArchitecturePage({ params }: { params: { id: string } })
   }
 
   return (
-    <div className="h-screen bg-[#050505] flex flex-col font-sans text-gray-200 overflow-hidden relative">
-      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-blue-600/20 rounded-full blur-[120px] pointer-events-none z-0"></div>
-      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-purple-600/20 rounded-full blur-[120px] pointer-events-none z-0"></div>
-
-      <header className="px-5 py-3 border-b border-slate-800 bg-slate-950 z-10 flex justify-between items-center relative">
+    <div className="h-screen bg-transparent flex flex-col font-sans text-gray-200 overflow-hidden relative">
+            
+      <header className="px-5 py-3 border-b border-white/10 bg-slate-950/55 backdrop-blur-xl z-10 flex justify-between items-center relative">
         <div className="flex items-center gap-4">
           <div className="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center">
             <Network size={18} className="text-white" />
@@ -250,6 +249,7 @@ export default function ArchitecturePage({ params }: { params: { id: string } })
         >
           <ArrowLeft size={16} /> Back to project
         </button>
+          <ThemeToggle />
           <UserMenu dark />
         </div>
       </header>
