@@ -8,30 +8,30 @@ const CustomNode = ({ data, selected }: any) => {
   const isModule = data.type === 'module';
   const isClass = data.type === 'class';
   
-  let gradient = 'from-purple-600 to-pink-500';
-  let shadow = 'shadow-[0_0_15px_rgba(216,180,254,0.3)]';
+  let gradient = 'from-[#8a74e8] to-[#b49cf5]';
+  let shadow = 'shadow-[0_0_15px_rgba(180,156,245,0.35)]';
   let Icon = Code2;
   
   if (isFolder) {
-    gradient = 'from-yellow-600 to-amber-500';
-    shadow = 'shadow-[0_0_15px_rgba(251,191,36,0.3)]';
+    gradient = 'from-[#c9a85a] to-[#f3dfa2]';
+    shadow = 'shadow-[0_0_15px_rgba(243,223,162,0.35)]';
     Icon = Folder;
   } else if (isFile) {
-    gradient = 'from-emerald-600 to-teal-500';
-    shadow = 'shadow-[0_0_15px_rgba(52,211,153,0.3)]';
+    gradient = 'from-[#2fa89a] to-[#5fd4c4]';
+    shadow = 'shadow-[0_0_15px_rgba(95,212,196,0.35)]';
     Icon = FileCode2;
   } else if (isModule) {
-    gradient = 'from-indigo-600 to-blue-500';
-    shadow = 'shadow-[0_0_15px_rgba(99,102,241,0.3)]';
+    gradient = 'from-[#5a5ee8] to-[#8187ff]';
+    shadow = 'shadow-[0_0_15px_rgba(129,135,255,0.35)]';
     Icon = Layers;
   } else if (isClass) {
-    gradient = 'from-blue-600 to-cyan-400';
-    shadow = 'shadow-[0_0_15px_rgba(56,189,248,0.3)]';
+    gradient = 'from-[#3f8fd6] to-[#7cc4f5]';
+    shadow = 'shadow-[0_0_15px_rgba(124,196,245,0.35)]';
     Icon = Box;
   }
 
   return (
-    <div className={`relative px-4 py-3 rounded-xl bg-gray-900 border border-gray-700 ${selected ? 'ring-2 ring-cyan-400 ' + shadow : 'hover:border-gray-500'} w-[220px] h-[64px]`}>
+    <div className={`relative px-4 py-3 rounded-xl bg-[#0d1430] border border-white/10 ${selected ? 'ring-2 ring-[#a8adff] ' + shadow : 'hover:border-white/25'} w-[220px] h-[64px]`}>
       
       <Handle 
         type="target" 
@@ -44,10 +44,10 @@ const CustomNode = ({ data, selected }: any) => {
           <Icon size={16} />
         </div>
         <div className="flex flex-col">
-          <span className="text-[10px] uppercase font-bold tracking-wider text-gray-400">
+          <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
             {data.type}
           </span>
-          <span className="text-sm font-semibold text-gray-100 truncate w-[140px]" title={data.name}>
+          <span className="text-sm font-semibold text-slate-100 truncate w-[140px]" title={data.name}>
             {data.name}
           </span>
         </div>

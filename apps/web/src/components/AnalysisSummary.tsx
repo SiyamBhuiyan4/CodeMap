@@ -24,7 +24,8 @@ const FINDING_META: Record<string, { label: string; tone: string; Icon: typeof I
 };
 
 const LANG_COLORS: Record<string, string> = {
-  python: 'bg-sky-500', typescript: 'bg-blue-600', javascript: 'bg-yellow-400',
+  python: 'bg-[#7cc4f5]', typescript: 'bg-[#8187ff]', javascript: 'bg-[#f3dfa2]',
+  java: 'bg-[#f5a97f]', go: 'bg-[#5fd4c4]', rust: 'bg-[#e8a0b4]', html: 'bg-[#f0a37a]', css: 'bg-[#b49cf5]',
 };
 
 // Postgres returns "...+00:00", SQLite returns a naive timestamp (UTC); handle both
@@ -130,7 +131,7 @@ export default function AnalysisSummary({ projectId, refreshKey }: { projectId: 
                   key={l.language}
                   onMouseEnter={() => setHoverLang(l.language)}
                   onClick={() => setHoverLang((h) => (h === l.language ? null : l.language))}
-                  className={`h-full cursor-pointer transition-[width,opacity] duration-700 ease-out ${LANG_COLORS[l.language] || 'bg-slate-300'} ${hoverLang && hoverLang !== l.language ? 'opacity-40' : ''}`}
+                  className={`h-full cursor-pointer transition-[width,opacity] duration-700 ease-out ${LANG_COLORS[l.language] || 'bg-[#3b4766]'} ${hoverLang && hoverLang !== l.language ? 'opacity-40' : ''}`}
                   style={{ width: barReady ? `${(l.files / totalLangFiles) * 100}%` : '0%' }}
                   aria-label={`${langName(l.language)}: ${l.files} files`}
                 />
@@ -155,7 +156,7 @@ export default function AnalysisSummary({ projectId, refreshKey }: { projectId: 
                         }`}
                       >
                         <div className="flex items-center gap-2 font-medium">
-                          <span className={`w-2.5 h-2.5 rounded-full ${LANG_COLORS[l.language] || 'bg-slate-300'}`} />
+                          <span className={`w-2.5 h-2.5 rounded-full ${LANG_COLORS[l.language] || 'bg-[#3b4766]'}`} />
                           {langName(l.language)}
                         </div>
                         <div className="text-slate-300 mt-0.5">{l.files} files · {pct}%</div>
@@ -177,7 +178,7 @@ export default function AnalysisSummary({ projectId, refreshKey }: { projectId: 
                 onMouseLeave={() => setHoverLang(null)}
                 className={`flex items-center gap-2 cursor-default transition-opacity ${hoverLang && hoverLang !== l.language ? 'opacity-40' : ''}`}
               >
-                <span className={`w-2.5 h-2.5 rounded-full ${LANG_COLORS[l.language] || 'bg-slate-300'}`} />
+                <span className={`w-2.5 h-2.5 rounded-full ${LANG_COLORS[l.language] || 'bg-[#3b4766]'}`} />
                 <span>{langName(l.language)}</span>
                 <span className="text-slate-400">{l.files}</span>
               </span>

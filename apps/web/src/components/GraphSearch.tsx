@@ -7,11 +7,11 @@ import { Trie } from '@/lib/trie';
 export type SearchItem = { id: string; name: string; type: string };
 
 const TYPE_STYLES: Record<string, string> = {
-  folder: 'bg-amber-500/15 text-amber-300',
-  file: 'bg-emerald-500/15 text-emerald-300',
-  module: 'bg-indigo-500/15 text-indigo-300',
-  class: 'bg-sky-500/15 text-sky-300',
-  function: 'bg-fuchsia-500/15 text-fuchsia-300',
+  folder: 'bg-[#f3dfa2]/15 text-[#f3dfa2]',
+  file: 'bg-[#5fd4c4]/15 text-[#5fd4c4]',
+  module: 'bg-[#8187ff]/15 text-[#a8adff]',
+  class: 'bg-[#7cc4f5]/15 text-[#7cc4f5]',
+  function: 'bg-[#b49cf5]/15 text-[#c4b2f7]',
 };
 
 // Search box for the architecture map, backed by a trie so results update instantly
@@ -62,7 +62,7 @@ export default function GraphSearch({ items, onPick }: { items: SearchItem[]; on
 
   return (
     <div ref={boxRef} className="relative w-full max-w-md">
-      <div className="flex items-center gap-2 bg-gray-900/80 border border-gray-700 rounded-xl px-3 py-2 focus-within:border-cyan-500">
+      <div className="flex items-center gap-2 bg-gray-900/80 border border-gray-700 rounded-xl px-3 py-2 focus-within:border-[#8187ff]">
         <Search size={16} className="text-gray-500 shrink-0" />
         <input
           ref={inputRef}

@@ -287,10 +287,11 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
       </nav>
 
       <header className="card overflow-hidden">
-        <div className="h-24 bg-gradient-to-r from-indigo-600 via-violet-500 to-indigo-500 animate-gradient relative">
+        <div className="h-24 bg-gradient-to-r from-[#141d4a] via-[#2a2f7a] to-[#3d3a8c] animate-gradient relative">
+          <div className="absolute inset-0" style={{ background: 'radial-gradient(circle at 88% 30%, rgba(243,223,162,0.35), transparent 45%)' }} />
           <div
             className="absolute inset-0 opacity-20"
-            style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '18px 18px' }}
+            style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.9) 1px, transparent 0)', backgroundSize: '22px 22px' }}
           />
         </div>
         <div className="px-6 sm:px-8 pb-6">
@@ -370,7 +371,7 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
               </div>
               <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden" role="progressbar" aria-valuenow={job?.progress ?? 0} aria-valuemin={0} aria-valuemax={100}>
                 <div
-                  className="h-full bg-indigo-600 rounded-full transition-[width] duration-700 ease-out progress-sheen"
+                  className="h-full bar-accent rounded-full transition-[width] duration-700 ease-out progress-sheen"
                   style={{ width: `${Math.max(2, job?.progress ?? 0)}%` }}
                 />
               </div>

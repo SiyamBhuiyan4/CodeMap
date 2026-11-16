@@ -7,7 +7,7 @@ export default function Logo({ size = 'md', inverted = false }: { size?: 'sm' | 
   const text = size === 'lg' ? 'text-2xl' : size === 'sm' ? 'text-base' : 'text-lg';
   return (
     <span className="inline-flex items-center gap-2.5">
-      <span className={`${box} bg-indigo-600 text-white flex items-center justify-center shadow-sm`}>
+      <span className={`${box} bg-gradient-to-br from-[#8187ff] to-[#5a5ee8] text-white flex items-center justify-center shadow-[0_0_0_1px_rgba(255,255,255,0.15),0_6px_16px_-6px_rgba(109,114,246,0.8)]`}>
         <Network size={icon} strokeWidth={2.25} />
       </span>
       <span className={`${text} font-semibold tracking-tight ${inverted ? 'text-white' : 'text-slate-900'}`}>

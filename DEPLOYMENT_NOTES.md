@@ -109,6 +109,12 @@ Visual only. No features changed.
 - Analysis summary details start **closed** on every visit.
 - The import section was redesigned: a header with icon and subtitle, a **GitHub | ZIP upload** switch, an inline URL field with a button, or a drop zone.
 
+## Moonlit colour palette (2026-11-16)
+One palette everywhere, defined as CSS variables in `globals.css`:
+- **Night navy** surfaces, a **soft indigo** accent (`--c-accent` #6d72f6) for buttons, links and focus, and **moon-gold** (`--c-moon` #f3dfa2) for warm highlights.
+- **Pale sky-blue** (#7cc4f5), **teal** (#5fd4c4) and **lavender** (#b49cf5) as secondaries; a muted navy (#3b4766) for neutral items.
+- Applied to: primary buttons (soft gradient and glow), the logo, the project banner (night gradient with a moon glow instead of hot purple), the progress bar, the language bar (distinct hues at equal brightness, muted "Other"), status badges, graph nodes, edges, minimap, search tags, the details panel, and the React Flow controls.
+
 ## What Siyam did (by hand)
 1. Asked for the app to be hosted for free, without a card, and without dropping any features.
 2. Tried Oracle Cloud first (needs a card, so dropped), then Hugging Face (Docker Spaces need PRO, so dropped).

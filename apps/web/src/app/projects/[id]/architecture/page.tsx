@@ -94,10 +94,10 @@ const getLayoutedNodes = (nodes: any[], edges: any[]) => {
   return nodes.map((n) => ({ ...n, width: NODE_W, height: NODE_H, position: positions[n.id] || { x: 0, y: 0 } }));
 };
 
-const EDGE_COLORS: Record<string, string> = { call: '#06b6d4', dependency: '#f59e0b', containment: '#a855f7' };
+const EDGE_COLORS: Record<string, string> = { call: '#7cc4f5', dependency: '#f3dfa2', containment: '#8187ff' };
 
 const MINIMAP_COLORS: Record<string, string> = {
-  folder: '#f59e0b', file: '#10b981', module: '#6366f1', class: '#38bdf8',
+  folder: '#f3dfa2', file: '#5fd4c4', module: '#8187ff', class: '#7cc4f5',
 };
 
 export default function ArchitecturePage({ params }: { params: { id: string } }) {
@@ -277,8 +277,8 @@ export default function ArchitecturePage({ params }: { params: { id: string } })
               position="bottom-left"
               pannable
               zoomable
-              nodeColor={(n: any) => MINIMAP_COLORS[n.data?.type] || '#a855f7'}
-              nodeStrokeColor={(n: any) => MINIMAP_COLORS[n.data?.type] || '#a855f7'}
+              nodeColor={(n: any) => MINIMAP_COLORS[n.data?.type] || '#b49cf5'}
+              nodeStrokeColor={(n: any) => MINIMAP_COLORS[n.data?.type] || '#b49cf5'}
               nodeStrokeWidth={60}
               maskColor="rgba(2, 6, 23, 0.6)"
               style={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '8px' }}
@@ -316,12 +316,12 @@ export default function ArchitecturePage({ params }: { params: { id: string } })
               <div className="p-5 border-b border-gray-800/60 flex justify-between items-start">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-[#8187ff]/15 text-[#a8adff] border border-[#8187ff]/30">
                       Entity Viewer
                     </span>
                     <span className="flex h-2 w-2 relative">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#5fd4c4] opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[#5fd4c4]"></span>
                     </span>
                   </div>
                   <h2 className="text-2xl font-bold text-white break-words pr-8">
@@ -339,13 +339,13 @@ export default function ArchitecturePage({ params }: { params: { id: string } })
               <div className="flex border-b border-gray-800">
                 <button 
                   onClick={() => setActiveTab('overview')}
-                  className={`flex-1 py-3 text-sm font-medium transition-all ${activeTab === 'overview' ? 'text-cyan-400 border-b-2 border-cyan-400 bg-cyan-900/10' : 'text-gray-400 hover:text-gray-200'}`}
+                  className={`flex-1 py-3 text-sm font-medium transition-all ${activeTab === 'overview' ? 'text-[#a8adff] border-b-2 border-[#8187ff] bg-[#8187ff]/10' : 'text-gray-400 hover:text-gray-200'}`}
                 >
                   <Activity size={16} className="inline mr-2" /> Overview
                 </button>
                 <button 
                   onClick={() => setActiveTab('logic')}
-                  className={`flex-1 py-3 text-sm font-medium transition-all ${activeTab === 'logic' ? 'text-purple-400 border-b-2 border-purple-400 bg-purple-900/10' : 'text-gray-400 hover:text-gray-200'}`}
+                  className={`flex-1 py-3 text-sm font-medium transition-all ${activeTab === 'logic' ? 'text-[#c4b2f7] border-b-2 border-[#b49cf5] bg-[#b49cf5]/10' : 'text-gray-400 hover:text-gray-200'}`}
                 >
                   <Terminal size={16} className="inline mr-2" /> Source Code
                 </button>
@@ -354,8 +354,8 @@ export default function ArchitecturePage({ params }: { params: { id: string } })
               <div className="p-5 flex-1 overflow-y-auto custom-scrollbar">
                 {!entityDetails ? (
                   <div className="flex flex-col items-center justify-center h-full text-gray-500 space-y-4">
-                    <div className="w-8 h-8 border-2 border-gray-600 border-t-cyan-500 rounded-full animate-spin"></div>
-                    <p className="font-mono text-sm uppercase tracking-widest text-cyan-500/70">Decoding matrix...</p>
+                    <div className="w-8 h-8 border-2 border-gray-600 border-t-[#8187ff] rounded-full animate-spin"></div>
+                    <p className="text-sm text-slate-400">Loading details…</p>
                   </div>
                 ) : (
                   <motion.div 
@@ -384,24 +384,24 @@ export default function ArchitecturePage({ params }: { params: { id: string } })
 
                         <div>
                           <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 bg-cyan-500 rounded-full shadow-[0_0_8px_rgba(6,182,212,0.8)]"></div> Telemetry & Impact
+                            <div className="w-1.5 h-1.5 bg-[#8187ff] rounded-full"></div> Connections
                           </h4>
                           <div className="space-y-4">
-                            <div className="bg-gradient-to-r from-blue-900/20 to-transparent p-4 rounded-xl border border-blue-900/40 border-l-2 border-l-blue-500 hover:bg-blue-900/30 transition-colors">
-                              <span className="text-[10px] font-bold text-blue-400 uppercase block mb-2 tracking-wider">Depends On (Uses)</span>
+                            <div className="bg-gradient-to-r from-[#7cc4f5]/10 to-transparent p-4 rounded-xl border border-white/10 border-l-2 border-l-[#7cc4f5] hover:bg-[#7cc4f5]/15 transition-colors">
+                              <span className="text-[10px] font-bold text-[#7cc4f5] uppercase block mb-2 tracking-wider">Calls</span>
                               <ul className="text-sm space-y-2 text-gray-300">
                                 {entityDetails.callees.length === 0 ? <li className="text-gray-600 italic font-mono text-xs">No outgoing calls detected</li> :
-                                  entityDetails.callees.map((c: any) => <li key={c.id} className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-blue-500/80"></div><span className="font-mono">{c.name}</span></li>)
+                                  entityDetails.callees.map((c: any) => <li key={c.id} className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-[#7cc4f5]/80"></div><span className="font-mono">{c.name}</span></li>)
                                 }
                               </ul>
                             </div>
                             
-                            <div className="bg-gradient-to-r from-purple-900/20 to-transparent p-4 rounded-xl border border-purple-900/40 border-l-2 border-l-purple-500 hover:bg-purple-900/30 transition-colors">
-                              <span className="text-[10px] font-bold text-purple-400 uppercase block mb-2 tracking-wider">Affected By (Impact)</span>
+                            <div className="bg-gradient-to-r from-[#b49cf5]/10 to-transparent p-4 rounded-xl border border-white/10 border-l-2 border-l-[#b49cf5] hover:bg-[#b49cf5]/15 transition-colors">
+                              <span className="text-[10px] font-bold text-[#c4b2f7] uppercase block mb-2 tracking-wider">Called by</span>
                               <p className="text-xs text-gray-400 mb-3 leading-relaxed">Modifying this entity will affect the following dependents:</p>
                               <ul className="text-sm space-y-2 text-gray-300">
                                 {entityDetails.callers.length === 0 ? <li className="text-gray-600 italic font-mono text-xs">No incoming calls detected</li> :
-                                  entityDetails.callers.map((c: any) => <li key={c.id} className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-purple-500/80"></div><span className="font-mono">{c.name}</span></li>)
+                                  entityDetails.callers.map((c: any) => <li key={c.id} className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-[#b49cf5]/80"></div><span className="font-mono">{c.name}</span></li>)
                                 }
                               </ul>
                             </div>
@@ -414,7 +414,7 @@ export default function ArchitecturePage({ params }: { params: { id: string } })
                       <div className="h-full flex flex-col">
                         <div className="flex items-center justify-between mb-3">
                           <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.8)]"></div> Live Source Code
+                            <div className="w-1.5 h-1.5 bg-[#5fd4c4] rounded-full"></div> Source code
                           </h4>
                           <span className="text-[10px] text-gray-500 font-mono bg-gray-900 px-2 py-0.5 rounded border border-gray-800">Read-Only</span>
                         </div>
@@ -429,7 +429,7 @@ export default function ArchitecturePage({ params }: { params: { id: string } })
                             <div className="mx-auto text-[10px] text-gray-500 font-mono">{entityDetails.file_path.split('/').pop()}</div>
                           </div>
                           <pre className="p-5 overflow-x-auto text-[13px] text-gray-300 font-mono leading-relaxed h-[calc(100vh-320px)] custom-scrollbar">
-                            <code className="text-cyan-200">{entityDetails.source_code || "// Source code could not be loaded or analyzed"}</code>
+                            <code className="text-slate-200">{entityDetails.source_code || "// Source code could not be loaded or analyzed"}</code>
                           </pre>
                         </div>
                       </div>
