@@ -45,6 +45,14 @@ The original **docker-compose** setup (Celery worker, Redis, Ollama, local Postg
 - Next.js upgraded from 14.1.0 to **14.2.35** (security fix).
 - `docker-compose.prod.yml` fixed: API port exposed, shared workspaces volume, Ollama service.
 
+## Architecture graph rework (2026-11-16)
+The graph page was slow and opened on a random corner. Changes made:
+- **Load first, then show.** The page downloads the full graph and builds the layout behind a loading screen, then shows the whole graph fitted to the screen in one go (zoom out to 2%).
+- **Compact layout**: folder > file > module > function, packed into wrapped rows so the graph keeps roughly screen proportions instead of becoming a very wide strip. Call and import links no longer distort the layout.
+- **No live animation.** The glow filters and animated dashes on edges, the node blur, and the pulsing dots are removed. Only on-screen elements are drawn.
+- **Layer toggles** at the top (Structure / Calls / Imports). Calls and imports are hidden by default. Clicking a node highlights all of its links.
+- **Mini-map** is colour-coded by type, moved to the bottom-left, and drag/zoomable. The zoom controls are now top-left. The ✨ button (bottom-right) opens the AI chat.
+
 ## What Siyam did (by hand)
 1. Asked for the app to be hosted for free, without a card, and without dropping any features.
 2. Tried Oracle Cloud first (needs a card, so dropped), then Hugging Face (Docker Spaces need PRO, so dropped).

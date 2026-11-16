@@ -31,7 +31,7 @@ const CustomNode = ({ data, selected }: any) => {
   }
 
   return (
-    <div className={`relative px-4 py-3 rounded-xl bg-gray-900 border border-gray-700 transition-all duration-300 transform hover:scale-105 ${selected ? 'ring-2 ring-cyan-400 ' + shadow : 'hover:border-gray-500'} backdrop-blur-md bg-opacity-90 min-w-[200px]`}>
+    <div className={`relative px-4 py-3 rounded-xl bg-gray-900 border border-gray-700 ${selected ? 'ring-2 ring-cyan-400 ' + shadow : 'hover:border-gray-500'} w-[220px] h-[64px]`}>
       
       <Handle 
         type="target" 
@@ -54,7 +54,7 @@ const CustomNode = ({ data, selected }: any) => {
       </div>
 
       <div className="absolute top-2 right-2 flex space-x-1">
-        {!isFolder && !isFile && !isModule && <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></div>}
+        {!isFolder && !isFile && !isModule && <div className="w-1.5 h-1.5 rounded-full bg-green-400"></div>}
       </div>
 
       <Handle 

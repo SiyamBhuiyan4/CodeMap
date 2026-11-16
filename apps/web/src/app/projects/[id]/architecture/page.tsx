@@ -2,48 +2,108 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import ReactFlow, { Background, Controls, MiniMap, useNodesState, useEdgesState, MarkerType } from 'reactflow';
+import ReactFlow, { Background, Controls, MiniMap, useNodesState, MarkerType } from 'reactflow';
 import 'reactflow/dist/style.css';
-import dagre from 'dagre';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Activity, Code, GitMerge, FileText, ArrowLeft, Terminal, Cpu, MessageSquare, Send, Sparkles, X } from 'lucide-react';
 import CustomNode from '@/components/CustomNode';
 
-const dagreGraph = new dagre.graphlib.Graph();
-dagreGraph.setDefaultEdgeLabel(() => ({}));
+const NODE_W = 220;
+const NODE_H = 64;
+const GAP_X = 40;
+const GAP_Y = 70;
 
-const getLayoutedElements = (nodes: any[], edges: any[], direction = 'TB') => {
-  dagreGraph.setGraph({ rankdir: direction, ranksep: 100, nodesep: 80 });
+type Box = { w: number; h: number; place: (x: number, y: number, out: Record<string, { x: number; y: number }>) => void };
 
-  nodes.forEach((node) => {
-    dagreGraph.setNode(node.id, { width: 220, height: 80 });
+// Packs child boxes into wrapped rows so the whole graph stays close to screen proportions
+// (a plain top-to-bottom tree becomes an extremely wide strip once a repo has hundreds of entities).
+const packRows = (boxes: Box[]) => {
+  const area = boxes.reduce((a, b) => a + (b.w + GAP_X) * (b.h + GAP_Y), 0);
+  const widest = boxes.reduce((m, b) => Math.max(m, b.w), 0);
+  const targetW = Math.max(widest, Math.sqrt(area * 2.6));
+  const rows: { items: Box[]; w: number; h: number }[] = [];
+  let row = { items: [] as Box[], w: 0, h: 0 };
+  boxes.forEach((b) => {
+    const nextW = row.items.length ? row.w + GAP_X + b.w : b.w;
+    if (row.items.length && nextW > targetW) {
+      rows.push(row);
+      row = { items: [], w: 0, h: 0 };
+    }
+    row.w = row.items.length ? row.w + GAP_X + b.w : b.w;
+    row.h = Math.max(row.h, b.h);
+    row.items.push(b);
+  });
+  if (row.items.length) rows.push(row);
+  const w = rows.reduce((m, r) => Math.max(m, r.w), 0);
+  const h = rows.reduce((t, r, i) => t + r.h + (i ? GAP_Y : 0), 0);
+  const place = (x: number, y: number, out: Record<string, { x: number; y: number }>) => {
+    let cy = y;
+    rows.forEach((r) => {
+      let cx = x + (w - r.w) / 2;
+      r.items.forEach((b) => {
+        b.place(cx, cy, out);
+        cx += b.w + GAP_X;
+      });
+      cy += r.h + GAP_Y;
+    });
+  };
+  return { w, h, place };
+};
+
+// Lays out the containment hierarchy (folder > file > module > function/class) only.
+// Call and import edges are drawn on top but never distort the layout.
+const getLayoutedNodes = (nodes: any[], edges: any[]) => {
+  const children: Record<string, string[]> = {};
+  const hasParent = new Set<string>();
+  const ids = new Set(nodes.map((n) => n.id));
+  edges.forEach((e) => {
+    if (e.type !== 'containment' || !ids.has(e.source) || !ids.has(e.target) || hasParent.has(e.target)) return;
+    (children[e.source] ||= []).push(e.target);
+    hasParent.add(e.target);
   });
 
-  edges.forEach((edge) => {
-    dagreGraph.setEdge(edge.source, edge.target);
-  });
-
-  dagre.layout(dagreGraph);
-
-  const newNodes = nodes.map((node) => {
-    const nodeWithPosition = dagreGraph.node(node.id);
+  const visiting = new Set<string>();
+  const boxFor = (id: string): Box => {
+    visiting.add(id);
+    const kids = (children[id] || []).filter((k) => !visiting.has(k));
+    const self = (x: number, y: number, out: Record<string, { x: number; y: number }>) => { out[id] = { x, y }; };
+    if (!kids.length) {
+      visiting.delete(id);
+      return { w: NODE_W, h: NODE_H, place: self };
+    }
+    const block = packRows(kids.map(boxFor));
+    visiting.delete(id);
+    const w = Math.max(NODE_W, block.w);
     return {
-      ...node,
-      position: {
-        x: nodeWithPosition.x - 220 / 2,
-        y: nodeWithPosition.y - 80 / 2,
+      w,
+      h: NODE_H + GAP_Y + block.h,
+      place: (x, y, out) => {
+        self(x + (w - NODE_W) / 2, y, out);
+        block.place(x + (w - block.w) / 2, y + NODE_H + GAP_Y, out);
       },
     };
-  });
+  };
 
-  return { nodes: newNodes, edges };
+  const roots = nodes.filter((n) => !hasParent.has(n.id)).map((n) => boxFor(n.id));
+  const positions: Record<string, { x: number; y: number }> = {};
+  packRows(roots).place(0, 0, positions);
+  // Explicit size lets the minimap and fitView work for nodes that are not rendered yet
+  return nodes.map((n) => ({ ...n, width: NODE_W, height: NODE_H, position: positions[n.id] || { x: 0, y: 0 } }));
+};
+
+const EDGE_COLORS: Record<string, string> = { call: '#06b6d4', dependency: '#f59e0b', containment: '#a855f7' };
+
+const MINIMAP_COLORS: Record<string, string> = {
+  folder: '#f59e0b', file: '#10b981', module: '#6366f1', class: '#38bdf8',
 };
 
 export default function ArchitecturePage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [allEdges, setAllEdges] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingStage, setLoadingStage] = useState('Downloading graph...');
+  const [showLayers, setShowLayers] = useState({ containment: true, call: false, dependency: false });
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [entityDetails, setEntityDetails] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'logic'>('overview');
@@ -123,53 +183,22 @@ export default function ArchitecturePage({ params }: { params: { id: string } })
         if (res.ok) {
           const data = await res.json();
           
+          setLoadingStage(`Building layout for ${data.nodes.length} nodes...`);
+          // Let the loading message paint before the (synchronous) layout runs
+          await new Promise((r) => setTimeout(r, 30));
+
           const styledNodes = data.nodes.map((n: any) => ({
             ...n,
-            type: n.type === 'folder' || n.type === 'file' ? 'custom' : 'custom',
+            type: 'custom',
             data: {
               ...n.data,
               type: n.data.label.split(':')[0].trim(),
               name: n.data.label.split(':')[1].trim()
             }
           }));
-          
-          const styledEdges = data.edges.map((e: any) => {
-            const isCall = e.type === 'call';
-            const isDep = e.type === 'dependency';
-            return {
-              ...e,
-              type: 'smoothstep',
-              animated: isCall || isDep,
-              markerEnd: {
-                type: MarkerType.ArrowClosed,
-                width: 15,
-                height: 15,
-                color: isCall ? '#06b6d4' : (isDep ? '#f59e0b' : '#a855f7'),
-              },
-              style: isCall ? {
-                strokeWidth: 3,
-                stroke: '#06b6d4',
-                filter: 'drop-shadow(0 0 10px #06b6d4)',
-                opacity: 0.9,
-              } : (isDep ? {
-                strokeWidth: 2.5,
-                stroke: '#f59e0b',
-                strokeDasharray: '4,4',
-                filter: 'drop-shadow(0 0 8px rgba(245, 158, 11, 0.4))',
-                opacity: 0.85,
-              } : {
-                strokeWidth: 2,
-                stroke: '#a855f7',
-                strokeDasharray: '8,8',
-                filter: 'drop-shadow(0 0 5px rgba(168, 85, 247, 0.5))',
-                opacity: 0.7,
-              }),
-            };
-          });
 
-          const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(styledNodes, styledEdges, 'TB');
-          setNodes(layoutedNodes);
-          setEdges(layoutedEdges);
+          setNodes(getLayoutedNodes(styledNodes, data.edges));
+          setAllEdges(data.edges);
         }
       } catch (err) {
         console.error(err);
@@ -178,7 +207,37 @@ export default function ArchitecturePage({ params }: { params: { id: string } })
       }
     };
     fetchGraph();
-  }, [params.id, router, setNodes, setEdges]);
+  }, [params.id, router, setNodes]);
+
+  // Static (non-animated, unfiltered) edges. Calls/imports are hidden by default and always
+  // shown for the selected node, which keeps large graphs readable and fast to pan/zoom.
+  const edges = useMemo(() => {
+    return allEdges
+      .filter((e: any) => {
+        const touchesSelected = selectedNodeId && (e.source === selectedNodeId || e.target === selectedNodeId);
+        return touchesSelected || (showLayers as any)[e.type];
+      })
+      .map((e: any) => {
+        const color = EDGE_COLORS[e.type] || EDGE_COLORS.containment;
+        const highlighted = !!selectedNodeId && (e.source === selectedNodeId || e.target === selectedNodeId);
+        const isStructure = e.type === 'containment';
+        const base = isStructure ? 1 : 1.75;
+        return {
+          id: e.id,
+          source: e.source,
+          target: e.target,
+          type: e.type === 'containment' ? 'smoothstep' : 'default',
+          markerEnd: e.type === 'containment' ? undefined : { type: MarkerType.ArrowClosed, width: 14, height: 14, color },
+          style: {
+            stroke: color,
+            strokeWidth: highlighted ? base + 1.5 : base,
+            strokeDasharray: e.type === 'dependency' ? '5,4' : undefined,
+            opacity: highlighted ? 1 : selectedNodeId ? 0.15 : isStructure ? 0.35 : 0.8,
+          },
+          zIndex: highlighted ? 10 : 0,
+        };
+      });
+  }, [allEdges, showLayers, selectedNodeId]);
 
   const onNodeClick = useCallback(async (event: any, node: any) => {
     setSelectedNodeId(node.id);
@@ -203,7 +262,7 @@ export default function ArchitecturePage({ params }: { params: { id: string } })
       <div className="h-screen bg-[#050505] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-cyan-400 font-mono tracking-widest text-sm uppercase">Initializing Neural Link...</p>
+          <p className="text-cyan-400 font-mono tracking-widest text-sm uppercase">{loadingStage}</p>
         </div>
       </div>
     );
@@ -240,20 +299,47 @@ export default function ArchitecturePage({ params }: { params: { id: string } })
             edges={edges}
             nodeTypes={nodeTypes}
             onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
             onNodeClick={onNodeClick}
+            onPaneClick={() => setSelectedNodeId(null)}
             fitView
+            fitViewOptions={{ padding: 0.05 }}
+            minZoom={0.02}
+            maxZoom={2}
+            onlyRenderVisibleElements
+            nodesConnectable={false}
             className="bg-transparent"
           >
             <Background color="#1f2937" gap={20} size={1.5} />
-            <Controls className="bg-gray-900 border-gray-700 fill-gray-300 shadow-xl" />
-            <MiniMap 
-              nodeStrokeColor="#1e293b"
-              nodeColor="#334155"
-              maskColor="rgba(0, 0, 0, 0.4)"
-              style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '8px' }}
+            <Controls position="top-left" className="bg-gray-900 border-gray-700 fill-gray-300 shadow-xl" />
+            <MiniMap
+              position="bottom-left"
+              pannable
+              zoomable
+              nodeColor={(n: any) => MINIMAP_COLORS[n.data?.type] || '#a855f7'}
+              nodeStrokeColor={(n: any) => MINIMAP_COLORS[n.data?.type] || '#a855f7'}
+              nodeStrokeWidth={60}
+              maskColor="rgba(2, 6, 23, 0.6)"
+              style={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '8px' }}
             />
           </ReactFlow>
+
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 bg-gray-950/90 border border-gray-800 rounded-full px-3 py-1.5 text-xs">
+            {([
+              ['containment', 'Structure'],
+              ['call', 'Calls'],
+              ['dependency', 'Imports'],
+            ] as const).map(([key, label]) => (
+              <button
+                key={key}
+                onClick={() => setShowLayers((prev) => ({ ...prev, [key]: !prev[key] }))}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border ${showLayers[key] ? 'border-gray-600 bg-gray-800 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
+              >
+                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: EDGE_COLORS[key], opacity: showLayers[key] ? 1 : 0.35 }} />
+                {label}
+              </button>
+            ))}
+            <span className="text-gray-500 pl-1 hidden md:inline">Click a node to see its links</span>
+          </div>
         </div>
 
         <AnimatePresence>

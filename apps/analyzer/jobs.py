@@ -1,3 +1,5 @@
+import uuid
+
 from packages.shared.database import SessionLocal
 from packages.shared.models import AnalysisJob
 from apps.analyzer.pipeline import run_analysis_pipeline
@@ -11,7 +13,7 @@ def run_analysis_job(job_id: str, snapshot_id: str, workspace_dir: str):
     db = SessionLocal()
     job = None
     try:
-        job = db.query(AnalysisJob).filter(AnalysisJob.id == job_id).first()
+        job = db.query(AnalysisJob).filter(AnalysisJob.id == uuid.UUID(str(job_id))).first()
         if not job:
             return
 
