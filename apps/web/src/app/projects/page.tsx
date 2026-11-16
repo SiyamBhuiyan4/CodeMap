@@ -120,9 +120,10 @@ export default function ProjectsDashboard() {
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="card p-6 h-40 animate-pulse">
-              <div className="h-4 w-1/2 bg-slate-200 rounded" />
-              <div className="h-3 w-3/4 bg-slate-100 rounded mt-4" />
+            <div key={i} className="card p-6 h-44">
+              <div className="skeleton w-10 h-10 rounded-lg" />
+              <div className="skeleton h-4 w-1/2 rounded mt-5" />
+              <div className="skeleton h-3 w-3/4 rounded mt-3" />
             </div>
           ))}
         </div>
@@ -140,7 +141,7 @@ export default function ProjectsDashboard() {
       ) : visibleProjects.length === 0 ? (
         <div className="card card-body text-center text-sm text-slate-500">No projects match “{query}”.</div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="stagger grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {visibleProjects.map((p) => (
             <div
               key={p.id}
@@ -148,10 +149,10 @@ export default function ProjectsDashboard() {
               tabIndex={0}
               onClick={() => router.push(`/projects/${p.id}`)}
               onKeyDown={(e) => { if (e.key === 'Enter') router.push(`/projects/${p.id}`); }}
-              className="card p-6 flex flex-col cursor-pointer group hover:border-indigo-300 hover:shadow-md transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+              className="card card-hover p-6 flex flex-col cursor-pointer group hover:border-indigo-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             >
               <div className="flex items-start justify-between gap-3">
-                <span className="w-10 h-10 shrink-0 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <span className="w-10 h-10 shrink-0 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center transition-colors duration-300 group-hover:bg-indigo-600 group-hover:text-white">
                   <FolderGit2 size={20} />
                 </span>
                 <button
@@ -168,7 +169,7 @@ export default function ProjectsDashboard() {
               <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
                 <span>Created {new Date(p.created_at).toLocaleDateString()}</span>
                 <span className="inline-flex items-center gap-1 font-medium text-indigo-600 opacity-0 group-hover:opacity-100 transition">
-                  Open <ArrowRight size={14} />
+                  Open <ArrowRight size={14} className="transition-transform duration-300 group-hover:translate-x-0.5" />
                 </span>
               </div>
             </div>

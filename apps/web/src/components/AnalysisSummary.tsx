@@ -39,6 +39,26 @@ const LANG_NAMES: Record<string, string> = {
 };
 const langName = (l: string) => LANG_NAMES[l] || l.charAt(0).toUpperCase() + l.slice(1);
 
+// Counts from 0 to `value` with an ease-out curve (skipped when reduced motion is on)
+function CountUp({ value }: { value: number }) {
+  const [shown, setShown] = useState(0);
+  useEffect(() => {
+    const reduce = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || value === 0) { setShown(value); return; }
+    let raf = 0;
+    const start = performance.now();
+    const duration = 900;
+    const step = (now: number) => {
+      const t = Math.min(1, (now - start) / duration);
+      setShown(Math.round(value * (1 - Math.pow(1 - t, 3))));
+      if (t < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [value]);
+  return <>{shown.toLocaleString()}</>;
+}
+
 const EXPANDED_KEY = 'codeatlas.summary.expanded';
 
 // Overview of the latest completed analysis: totals, language mix and findings.
@@ -48,6 +68,13 @@ export default function AnalysisSummary({ projectId, refreshKey }: { projectId: 
   const [filter, setFilter] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [hoverLang, setHoverLang] = useState<string | null>(null);
+  const [barReady, setBarReady] = useState(false);
+  // Let the language bar grow from 0 after the first paint
+  useEffect(() => {
+    if (!summary) return;
+    const id = requestAnimationFrame(() => setBarReady(true));
+    return () => cancelAnimationFrame(id);
+  }, [summary]);
 
   // Remember the open/closed choice for this browser
   useEffect(() => {
@@ -93,11 +120,11 @@ export default function AnalysisSummary({ projectId, refreshKey }: { projectId: 
         </span>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="stagger grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {stats.map(({ label, value, Icon }) => (
-          <div key={label} className="rounded-xl border border-slate-200 p-4">
+          <div key={label} className="rounded-xl border border-slate-200 p-4 card-hover hover:border-indigo-200">
             <div className="flex items-center gap-1.5 text-slate-500 text-xs font-medium"><Icon size={14} /> {label}</div>
-            <div className="text-2xl font-semibold text-slate-900 mt-2 tabular-nums">{value.toLocaleString()}</div>
+            <div className="text-2xl font-semibold text-slate-900 mt-2 tabular-nums"><CountUp value={value} /></div>
           </div>
         ))}
       </div>
@@ -112,8 +139,8 @@ export default function AnalysisSummary({ projectId, refreshKey }: { projectId: 
                   key={l.language}
                   onMouseEnter={() => setHoverLang(l.language)}
                   onClick={() => setHoverLang((h) => (h === l.language ? null : l.language))}
-                  className={`h-full cursor-pointer transition-opacity ${LANG_COLORS[l.language] || 'bg-gray-300'} ${hoverLang && hoverLang !== l.language ? 'opacity-40' : ''}`}
-                  style={{ width: `${(l.files / totalLangFiles) * 100}%` }}
+                  className={`h-full cursor-pointer transition-[width,opacity] duration-700 ease-out ${LANG_COLORS[l.language] || 'bg-slate-300'} ${hoverLang && hoverLang !== l.language ? 'opacity-40' : ''}`}
+                  style={{ width: barReady ? `${(l.files / totalLangFiles) * 100}%` : '0%' }}
                   aria-label={`${langName(l.language)}: ${l.files} files`}
                 />
               ))}
@@ -137,7 +164,7 @@ export default function AnalysisSummary({ projectId, refreshKey }: { projectId: 
                         }`}
                       >
                         <div className="flex items-center gap-2 font-medium">
-                          <span className={`w-2.5 h-2.5 rounded-full ${LANG_COLORS[l.language] || 'bg-gray-300'}`} />
+                          <span className={`w-2.5 h-2.5 rounded-full ${LANG_COLORS[l.language] || 'bg-slate-300'}`} />
                           {langName(l.language)}
                         </div>
                         <div className="text-slate-300 mt-0.5">{l.files} files · {pct}%</div>
@@ -159,7 +186,7 @@ export default function AnalysisSummary({ projectId, refreshKey }: { projectId: 
                 onMouseLeave={() => setHoverLang(null)}
                 className={`flex items-center gap-2 cursor-default transition-opacity ${hoverLang && hoverLang !== l.language ? 'opacity-40' : ''}`}
               >
-                <span className={`w-2.5 h-2.5 rounded-full ${LANG_COLORS[l.language] || 'bg-gray-300'}`} />
+                <span className={`w-2.5 h-2.5 rounded-full ${LANG_COLORS[l.language] || 'bg-slate-300'}`} />
                 <span>{langName(l.language)}</span>
                 <span className="text-slate-400">{l.files}</span>
               </span>
@@ -181,7 +208,7 @@ export default function AnalysisSummary({ projectId, refreshKey }: { projectId: 
       </button>
 
       {expanded && (
-      <div id="summary-details">
+      <div id="summary-details" className="animate-fade-up">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
           <h3 className="text-sm font-medium text-slate-700">Findings</h3>
           <div className="flex flex-wrap gap-2">
@@ -204,7 +231,7 @@ export default function AnalysisSummary({ projectId, refreshKey }: { projectId: 
         {summary.findings.length === 0 ? (
           <p className="text-sm text-slate-500 bg-slate-50 rounded-xl p-4">No issues found. 🎉</p>
         ) : (
-          <ul className="space-y-2">
+          <ul className="space-y-2 stagger">
             {visible.map((f) => {
               const meta = FINDING_META[f.type] || { label: f.type, tone: 'bg-slate-50 text-slate-700 border-slate-200', Icon: Info };
               return (

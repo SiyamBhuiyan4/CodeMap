@@ -84,13 +84,13 @@ export default function UserMenu({ dark = false }: { dark?: boolean }) {
           {initial}
         </span>
         <span className="hidden sm:block max-w-[180px] truncate text-sm">{email || 'Account'}</span>
-        <ChevronDown size={16} className={open ? 'rotate-180 transition' : 'transition'} />
+        <ChevronDown size={16} className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && (
         <div
           role="menu"
-          className={`absolute right-0 mt-2 w-64 rounded-xl border shadow-lg overflow-hidden z-50 ${
+          className={`absolute right-0 mt-2 w-64 rounded-xl border shadow-lg overflow-hidden z-50 animate-scale-in ${
             dark ? 'bg-gray-950 border-gray-800 text-gray-200' : 'bg-white border-slate-200 text-slate-800'
           }`}
         >

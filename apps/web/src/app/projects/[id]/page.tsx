@@ -220,9 +220,11 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
   if (!project) {
     return (
       <div className="page">
-        <div className="h-4 w-32 bg-slate-200 rounded animate-pulse" />
-        <div className="h-8 w-64 bg-slate-200 rounded mt-4 animate-pulse" />
-        <div className="card h-32 mt-8 animate-pulse" />
+        <div className="skeleton h-4 w-32 rounded" />
+        <div className="card overflow-hidden mt-6">
+          <div className="skeleton h-24 rounded-none" />
+          <div className="p-8 space-y-3"><div className="skeleton h-7 w-56 rounded" /><div className="skeleton h-4 w-40 rounded" /></div>
+        </div>
       </div>
     );
   }
@@ -237,7 +239,7 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
     return isNaN(d.getTime()) ? null : d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
   };
   const status = analyzing
-    ? { label: `Analyzing · ${job?.progress ?? 0}%`, cls: 'bg-indigo-50 text-indigo-700 ring-indigo-200', dot: 'bg-indigo-500 animate-pulse' }
+    ? { label: `Analyzing · ${job?.progress ?? 0}%`, cls: 'bg-indigo-50 text-indigo-700 ring-indigo-200', dot: 'bg-indigo-500 animate-ping' }
     : completed
     ? { label: 'Analyzed', cls: 'bg-emerald-50 text-emerald-700 ring-emerald-200', dot: 'bg-emerald-500' }
     : failed
@@ -245,7 +247,7 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
     : { label: 'Not analyzed', cls: 'bg-slate-100 text-slate-600 ring-slate-200', dot: 'bg-slate-400' };
 
   return (
-    <div className="page max-w-5xl space-y-6">
+    <div className="page max-w-5xl space-y-6 stagger">
       <nav className="breadcrumb !mb-0" aria-label="Breadcrumb">
         <Link href="/projects" className="inline-flex items-center gap-1"><ArrowLeft size={14} /> Projects</Link>
         <ChevronRight size={14} className="text-slate-300" />
@@ -253,7 +255,7 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
       </nav>
 
       <header className="card overflow-hidden">
-        <div className="h-24 bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-500 relative">
+        <div className="h-24 bg-gradient-to-r from-indigo-600 via-violet-500 to-indigo-500 animate-gradient relative">
           <div
             className="absolute inset-0 opacity-20"
             style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '18px 18px' }}
@@ -276,8 +278,8 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
               <p className="text-sm text-slate-500 mt-1">{project.description || 'No description'}</p>
             </div>
             {completed && (
-              <Link href={`/projects/${params.id}/architecture`} className="btn btn-primary shrink-0 self-start md:self-auto">
-                View architecture map <ArrowRight size={16} />
+              <Link href={`/projects/${params.id}/architecture`} className="btn btn-primary shrink-0 self-start md:self-auto group">
+                View architecture map <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-0.5" />
               </Link>
             )}
           </div>
@@ -331,7 +333,7 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
               </div>
               <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden" role="progressbar" aria-valuenow={job?.progress ?? 0} aria-valuemin={0} aria-valuemax={100}>
                 <div
-                  className="h-full bg-indigo-600 rounded-full transition-[width] duration-700 ease-out"
+                  className="h-full bg-indigo-600 rounded-full transition-[width] duration-700 ease-out progress-sheen"
                   style={{ width: `${Math.max(2, job?.progress ?? 0)}%` }}
                 />
               </div>

@@ -89,6 +89,13 @@ Visual only. No features changed.
 - Architecture map header: "Architecture map" / "Back to project" (was "CodeAtlas Engine" / "Exit Matrix").
 - The ✨ AI chat button is unchanged.
 
+## Motion & effects (2026-11-16)
+- Motion system in `globals.css`. Only transform and opacity are animated, and all motion is off when the visitor has "Reduce motion" turned on.
+- `app/template.tsx`: each page fades and slides in on navigation.
+- Lists and sections appear one after another (`.stagger`). Cards lift on hover (`.card-hover`). Buttons press-scale. Loading placeholders shimmer (`.skeleton`).
+- Project header gradient slowly drifts. The analysis progress bar has a moving shine, and the "Analyzing" badge dot pings.
+- Summary numbers count up, and the language bar grows into place. The profile menu pops open.
+
 ## What Siyam did (by hand)
 1. Asked for the app to be hosted for free, without a card, and without dropping any features.
 2. Tried Oracle Cloud first (needs a card, so dropped), then Hugging Face (Docker Spaces need PRO, so dropped).

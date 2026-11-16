@@ -20,7 +20,7 @@ export default function AuthShell({ title, subtitle, children, footer }: {
           <h2 className="text-3xl font-semibold tracking-tight leading-tight">
             Understand any codebase in minutes.
           </h2>
-          <ul className="mt-10 space-y-6">
+          <ul className="mt-10 space-y-6 stagger">
             {POINTS.map(({ Icon, title: t, text }) => (
               <li key={t} className="flex gap-4">
                 <span className="w-10 h-10 shrink-0 rounded-lg bg-white/10 flex items-center justify-center text-indigo-300">
@@ -38,7 +38,7 @@ export default function AuthShell({ title, subtitle, children, footer }: {
       </aside>
 
       <main className="flex items-center justify-center p-6 sm:p-12 bg-slate-50 lg:bg-white">
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-sm stagger">
           <Link href="/" className="lg:hidden inline-block mb-10"><Logo /></Link>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{title}</h1>
           <p className="text-sm text-slate-500 mt-1.5 mb-8">{subtitle}</p>

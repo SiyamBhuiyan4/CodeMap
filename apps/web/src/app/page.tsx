@@ -23,7 +23,7 @@ export default function Home() {
       </header>
 
       <main className="flex-1">
-        <section className="max-w-6xl mx-auto px-4 sm:px-8 pt-20 pb-16 text-center">
+        <section className="stagger max-w-6xl mx-auto px-4 sm:px-8 pt-20 pb-16 text-center">
           <span className="badge bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-200">Codebase architecture intelligence</span>
           <h1 className="mt-6 text-4xl sm:text-6xl font-semibold tracking-tight text-slate-900 max-w-3xl mx-auto leading-[1.1]">
             See how your code fits together.
@@ -41,10 +41,10 @@ export default function Home() {
         </section>
 
         <section className="bg-slate-50 border-t border-slate-200">
-          <div className="max-w-6xl mx-auto px-4 sm:px-8 py-16 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="stagger max-w-6xl mx-auto px-4 sm:px-8 py-16 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {FEATURES.map(({ Icon, title, text }) => (
-              <div key={title} className="card p-6">
-                <span className="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+              <div key={title} className="card card-hover p-6 group">
+                <span className="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center transition-colors duration-300 group-hover:bg-indigo-600 group-hover:text-white">
                   <Icon size={20} />
                 </span>
                 <h3 className="mt-4 font-semibold text-slate-900">{title}</h3>
