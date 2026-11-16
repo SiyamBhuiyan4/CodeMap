@@ -260,23 +260,23 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
           />
         </div>
         <div className="px-6 sm:px-8 pb-6">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-5 -mt-10">
-            <div className="flex flex-col sm:flex-row sm:items-end gap-4 min-w-0">
-              <span className="w-20 h-20 shrink-0 rounded-2xl bg-white ring-4 ring-white shadow-md border border-slate-200 text-indigo-600 flex items-center justify-center relative">
-                <FolderGit2 size={34} strokeWidth={1.75} />
-              </span>
-              <div className="min-w-0 pb-1">
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900 truncate">{project.name}</h1>
-                  <span className={`badge ring-1 ring-inset ${status.cls}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} /> {status.label}
-                  </span>
-                </div>
-                <p className="text-sm text-slate-500 mt-1">{project.description || 'No description'}</p>
+          {/* Only the icon overlaps the banner; the text sits fully below it */}
+          <span className="relative z-10 -mt-10 w-20 h-20 rounded-2xl bg-white ring-4 ring-white shadow-md border border-slate-200 text-indigo-600 flex items-center justify-center">
+            <FolderGit2 size={34} strokeWidth={1.75} />
+          </span>
+
+          <div className="mt-4 flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900 break-words">{project.name}</h1>
+                <span className={`badge ring-1 ring-inset ${status.cls}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} /> {status.label}
+                </span>
               </div>
+              <p className="text-sm text-slate-500 mt-1">{project.description || 'No description'}</p>
             </div>
             {completed && (
-              <Link href={`/projects/${params.id}/architecture`} className="btn btn-primary shrink-0">
+              <Link href={`/projects/${params.id}/architecture`} className="btn btn-primary shrink-0 self-start md:self-auto">
                 View architecture map <ArrowRight size={16} />
               </Link>
             )}
