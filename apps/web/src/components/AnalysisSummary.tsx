@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { FileCode2, Layers, Box, Code2, GitMerge, Link2, AlertTriangle, Info, RefreshCcw } from 'lucide-react';
+import { FileCode2, Layers, Box, Code2, GitMerge, Link2, AlertTriangle, Info, RefreshCcw, ChevronDown } from 'lucide-react';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -28,11 +28,32 @@ const LANG_COLORS: Record<string, string> = {
   python: 'bg-sky-500', typescript: 'bg-blue-600', javascript: 'bg-yellow-400',
 };
 
+// Postgres returns "...+00:00", SQLite returns a naive timestamp (UTC); handle both
+const parseServerDate = (value: string) => {
+  const hasZone = /([zZ]|[+-]\d{2}:?\d{2})$/.test(value);
+  const d = new Date(hasZone ? value : `${value}Z`);
+  return isNaN(d.getTime()) ? null : d;
+};
+
+const EXPANDED_KEY = 'codeatlas.summary.expanded';
+
 // Overview of the latest completed analysis: totals, language mix and findings.
 export default function AnalysisSummary({ projectId, refreshKey }: { projectId: string; refreshKey: string }) {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [showAll, setShowAll] = useState(false);
   const [filter, setFilter] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(false);
+
+  // Remember the open/closed choice for this browser
+  useEffect(() => {
+    try { setExpanded(localStorage.getItem(EXPANDED_KEY) === '1'); } catch { /* storage blocked */ }
+  }, []);
+  const toggle = () => {
+    setExpanded((v) => {
+      try { localStorage.setItem(EXPANDED_KEY, v ? '0' : '1'); } catch { /* ignore */ }
+      return !v;
+    });
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -63,7 +84,7 @@ export default function AnalysisSummary({ projectId, refreshKey }: { projectId: 
       <div className="flex items-baseline justify-between">
         <h2 className="text-xl font-medium">Analysis Summary</h2>
         <span className="text-xs text-gray-400">
-          {new Date(summary.analyzed_at + (summary.analyzed_at.endsWith('Z') ? '' : 'Z')).toLocaleString()}
+          {parseServerDate(summary.analyzed_at)?.toLocaleString() ?? ''}
         </span>
       </div>
 
@@ -101,7 +122,20 @@ export default function AnalysisSummary({ projectId, refreshKey }: { projectId: 
         </div>
       )}
 
-      <div>
+      <button
+        onClick={toggle}
+        aria-expanded={expanded}
+        aria-controls="summary-details"
+        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition"
+      >
+        {expanded
+          ? 'Hide details'
+          : `Show details${summary.findings.length ? ` · ${summary.findings.length} finding${summary.findings.length === 1 ? '' : 's'}` : ''}`}
+        <ChevronDown size={16} className={`transition-transform ${expanded ? 'rotate-180' : ''}`} />
+      </button>
+
+      {expanded && (
+      <div id="summary-details">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
           <h3 className="text-sm font-medium text-gray-700">Findings</h3>
           <div className="flex flex-wrap gap-2">
@@ -145,6 +179,7 @@ export default function AnalysisSummary({ projectId, refreshKey }: { projectId: 
           </button>
         )}
       </div>
+      )}
     </div>
   );
 }
