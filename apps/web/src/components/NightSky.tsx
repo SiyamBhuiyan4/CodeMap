@@ -315,6 +315,13 @@ export default function NightSky() {
   return (
     <div className="night-sky" data-dim-moon={dimMoon ? '' : undefined} aria-hidden="true">
       <div className="night-sky__day" />
+      <div className="night-sky__sunlight" />
+      <div className="night-sky__clouds">
+        <div className="cloud cloud--1" />
+        <div className="cloud cloud--2" />
+        <div className="cloud cloud--3" />
+        <div className="cloud cloud--4" />
+      </div>
       <div className="night-sky__moonlight" />
       <canvas ref={canvasRef} className="night-sky__stars" />
       <div ref={haloRef} className="night-sky__moon-halo" />

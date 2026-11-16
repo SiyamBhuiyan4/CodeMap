@@ -119,42 +119,99 @@ body {
 .night-sky__day {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, #4f9fe2 0%, #7fbdec 45%, #b8ddf6 80%, #d8eefb 100%);
+  background: linear-gradient(180deg, #2f7fd0 0%, #5a9fe0 30%, #8cc1ee 62%, #c4e1f7 88%, #dcedfa 100%);
+  opacity: 0;
+  transition: opacity 2.6s ease;
+}
+/* Warm wash of sunlight spreading from the sun's position */
+.night-sky__sunlight {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at calc(100% - 9vw - var(--moon-size) / 2) calc(9vh + var(--moon-size) / 2),
+    rgba(255, 251, 235, 0.75) 0%, rgba(255, 244, 214, 0.35) 18%, rgba(255, 240, 210, 0.1) 38%, transparent 60%);
   opacity: 0;
   transition: opacity 2.6s ease;
 }
 .night-sky__stars, .night-sky__moonlight { transition: opacity 2.2s ease; }
-html[data-sky="day"] .night-sky__day { opacity: 1; }
+html[data-sky="day"] .night-sky__day,
+html[data-sky="day"] .night-sky__sunlight { opacity: 1; }
 html[data-sky="day"] .night-sky__stars,
 html[data-sky="day"] .night-sky__moonlight { opacity: 0; }
 
+/* Soft clouds drifting across the day sky (no filters, just layered gradients) */
+.night-sky__clouds {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 2.6s ease;
+}
+html[data-sky="day"] .night-sky__clouds { opacity: 1; }
+.cloud {
+  position: absolute;
+  left: 0;
+  width: 360px;
+  height: 110px;
+  background:
+    radial-gradient(ellipse 30% 45% at 30% 60%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.55) 55%, transparent 72%),
+    radial-gradient(ellipse 26% 52% at 50% 44%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.5) 55%, transparent 72%),
+    radial-gradient(ellipse 30% 40% at 70% 62%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.45) 55%, transparent 72%),
+    radial-gradient(ellipse 48% 26% at 50% 74%, rgba(255, 255, 255, 0.85) 0%, transparent 75%);
+  animation: cloud-drift linear infinite;
+  animation-play-state: paused;
+}
+html[data-sky="day"] .cloud { animation-play-state: running; }
+.cloud--1 { top: 16vh; transform: scale(1.1); opacity: 0.85; animation-duration: 140s; animation-delay: -30s; }
+.cloud--2 { top: 34vh; transform: scale(0.75); opacity: 0.6; animation-duration: 180s; animation-delay: -110s; }
+.cloud--3 { top: 56vh; transform: scale(1.35); opacity: 0.7; animation-duration: 160s; animation-delay: -70s; }
+.cloud--4 { top: 74vh; transform: scale(0.9); opacity: 0.55; animation-duration: 200s; animation-delay: -150s; }
+@keyframes cloud-drift {
+  from { translate: -420px 0; }
+  to { translate: calc(100vw + 420px) 0; }
+}
+
 .night-sky__moon, .night-sky__moon-halo, .night-sky__sun { will-change: transform, opacity; }
 
+/* A soft, realistic sun: white-hot core, pale gold rim, layered bloom */
 .night-sky__sun {
   position: absolute;
   top: 9vh;
   right: 9vw;
-  width: var(--moon-size);
-  height: var(--moon-size);
+  width: calc(var(--moon-size) * 0.86);
+  height: calc(var(--moon-size) * 0.86);
+  margin: calc(var(--moon-size) * 0.07);
   border-radius: 9999px;
   opacity: 0;
-  background: radial-gradient(circle at 44% 40%, #fffef4 0%, #fff4bf 30%, #ffdc78 64%, #ffbf55 100%);
+  background: radial-gradient(circle at 50% 50%, #ffffff 0%, #fffef8 40%, #fff6d6 66%, #ffeab0 86%, #ffdf96 100%);
   box-shadow:
-    0 0 36px 10px rgba(255, 220, 120, 0.85),
-    0 0 120px 50px rgba(255, 196, 92, 0.38),
-    0 0 260px 120px rgba(255, 238, 180, 0.28);
+    0 0 0 1px rgba(255, 255, 255, 0.5),
+    0 0 26px 6px rgba(255, 252, 235, 0.95),
+    0 0 80px 26px rgba(255, 240, 195, 0.6),
+    0 0 180px 80px rgba(255, 250, 230, 0.3);
 }
 .night-sky__sun::before {
   content: '';
   position: absolute;
-  inset: -45%;
+  inset: -70%;
   border-radius: 9999px;
-  background: repeating-conic-gradient(rgba(255, 228, 140, 0.28) 0deg 5deg, transparent 5deg 15deg);
-  -webkit-mask: radial-gradient(circle, transparent 36%, #000 38%, transparent 70%);
-  mask: radial-gradient(circle, transparent 36%, #000 38%, transparent 70%);
-  animation: sun-rays 70s linear infinite;
+  background: radial-gradient(circle, rgba(255, 252, 235, 0.55) 0%, rgba(255, 244, 205, 0.22) 30%, rgba(255, 244, 205, 0.06) 50%, transparent 66%);
+  animation: sun-breathe 7s ease-in-out infinite;
 }
-@keyframes sun-rays { to { transform: rotate(360deg); } }
+@keyframes sun-breathe {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.07); opacity: 1; }
+}
+
+/* In daylight the cards and top bar become solid deep navy (no muddy grey glass) */
+.card, .glass-bar { transition: background-color 1.6s ease, border-color 1.6s ease, box-shadow 1.6s ease; }
+html[data-sky="day"] .card {
+  background-color: rgba(12, 19, 44, 0.92);
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 22px 44px -22px rgba(14, 42, 92, 0.65), 0 2px 6px -2px rgba(14, 42, 92, 0.25);
+}
+html[data-sky="day"] .glass-bar {
+  background-color: rgba(12, 19, 44, 0.86);
+  border-color: rgba(255, 255, 255, 0.12);
+}
 
 /* Text that sits directly on the sky turns dark in daylight */
 .page-title, .page-subtitle, .breadcrumb, .breadcrumb a, .sky-heading, .sky-text, .btn-ghost, .sky-btn {
@@ -171,7 +228,7 @@ html[data-sky="day"] .sky-btn { color: #0b1a3a; border-color: rgba(11, 26, 58, 0
 /* Hand cursor and a soft lift when hovering the moon or sun over empty sky */
 html.moon-hover, html.moon-hover body { cursor: pointer; }
 html.moon-hover .night-sky__moon { filter: brightness(calc(var(--moon-bright) + 0.08)); }
-html.moon-hover .night-sky__sun { filter: brightness(1.06); }
+html.moon-hover .night-sky__sun { filter: brightness(1.04); }
 
 .night-sky[data-dim-moon] .night-sky__moon { filter: brightness(var(--moon-bright)) opacity(0.2); }
 .night-sky[data-dim-moon] .night-sky__moon-halo,
