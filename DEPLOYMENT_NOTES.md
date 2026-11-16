@@ -98,11 +98,16 @@ Visual only. No features changed.
 
 ## Night-sky theme (2026-11-16)
 - Every page, including sign in, sits on an animated night sky (`components/NightSky.tsx`, mounted in `app/layout.tsx`): a gradient sky, a full moon with craters and glow, twinkling stars, and shooting stars every 4 to 10 seconds. Everything is drawn on one canvas at about 30 fps, paused in hidden tabs, and static under reduced motion.
-- **Light / dark mode** toggle (☀️/🌙, `components/ThemeToggle.tsx`) in the top bar, landing, auth and map headers. It is saved in `localStorage` (`codeatlas.theme`), applied before first paint, and defaults to the system setting.
-  - Light mode: a lighter moonlit blue sky, a bright moon with a large glow, and fewer visible stars.
-  - Dark mode: a near-black sky, dim moonlight, and brighter stars.
-- Cards are frosted glass (white in light mode, deep navy in dark mode). Text on the sky stays light. Dark-mode colours are remapped centrally in `globals.css`.
+- **Day / night (☀️/🌙)** toggle (`components/ThemeToggle.tsx`) in the top bar, landing, auth and map headers. **Only the moonlight changes**: day mode has a bright moon with a wide glow, night mode a dim moon. The sky and the interface stay dark in both. It is saved in `localStorage` (`codeatlas.theme`), applied before first paint as `html[data-moon]`, and defaults to the system setting.
+- **Walking effect**: stars in 3 depth layers drift sideways at different speeds; 3 layers of moonlit hills with pine trees scroll past at the bottom; mouse movement and page scroll add parallax. There are up to 900 stars, and shooting stars every 1.5 to 4.5 seconds (up to 3 at once).
+- Cards are frosted dark glass. The interface is always dark (`html.dark`).
 - The moon fades on the architecture map so the graph stays readable.
+
+## Project page additions (2026-11-16)
+- **Download ZIP** in the project header once analyzed. GitHub projects download GitHub's own archive of the default branch (every file). ZIP-upload projects download the stored files from `GET /api/projects/{id}/download` (owner-checked).
+- The analyzer now stores the text of every file up to 512 KB (not only source files) and flags binaries, so downloads and code views are complete.
+- Analysis summary details start **closed** on every visit.
+- The import section was redesigned: a header with icon and subtitle, a **GitHub | ZIP upload** switch, an inline URL field with a button, or a drop zone.
 
 ## What Siyam did (by hand)
 1. Asked for the app to be hosted for free, without a card, and without dropping any features.

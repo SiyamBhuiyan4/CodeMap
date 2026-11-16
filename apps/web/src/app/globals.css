@@ -8,35 +8,34 @@
    Pages use these classes so every screen looks and behaves the same.
 --------------------------------------------------------------------------- */
 
-/* Theme variables. Both modes are a night sky; light mode has brighter moonlight. */
+/* Theme variables.
+   The UI is always dark (html.dark) and the sky is identical in both modes.
+   The sun/moon switch only changes the moonlight via html[data-moon]:
+   "bright" = day mode (strong moon glow), default = night mode (dim moon). */
 :root {
-  --background: #0b1638;
-  --foreground: #0f172a;
-  --sky-top: #0a1435;
-  --sky-mid: #1a2d66;
-  --sky-bottom: #33498a;
-  --moon-size: clamp(96px, 11vw, 176px);
-  --moon-bright: 1.06;
-  --moon-glow-a: 0.6;
-  --moon-glow-b: 0.38;
-  --halo-opacity: 0.95;
-  --moon-wash: 0.32;
-  --star-alpha: 0.6;
-  color-scheme: light;
-}
-.dark {
-  --background: #02040c;
+  --background: #03050f;
   --foreground: #e2e8f0;
-  --sky-top: #01030a;
-  --sky-mid: #050b1d;
-  --sky-bottom: #0b1430;
-  --moon-bright: 0.8;
-  --moon-glow-a: 0.2;
-  --moon-glow-b: 0.1;
-  --halo-opacity: 0.35;
-  --moon-wash: 0.1;
+  --sky-top: #02040c;
+  --sky-mid: #060d24;
+  --sky-bottom: #0c1838;
+  --moon-size: clamp(96px, 11vw, 176px);
+  --moon-bright: 0.78;
+  --moon-glow-a: 0.18;
+  --moon-glow-b: 0.08;
+  --halo-opacity: 0.3;
+  --halo-scale: 3.4;
+  --moon-wash: 0.05;
   --star-alpha: 1;
   color-scheme: dark;
+}
+html[data-moon="bright"] {
+  --moon-bright: 1.14;
+  --moon-glow-a: 0.8;
+  --moon-glow-b: 0.5;
+  --halo-opacity: 1;
+  --halo-scale: 6;
+  --moon-wash: 0.24;
+  --star-alpha: 0.85;
 }
 
 html {
@@ -77,13 +76,13 @@ body {
   position: absolute;
   top: calc(9vh + var(--moon-size) / 2);
   right: calc(9vw + var(--moon-size) / 2);
-  width: calc(var(--moon-size) * 4.2);
-  height: calc(var(--moon-size) * 4.2);
+  width: calc(var(--moon-size) * var(--halo-scale));
+  height: calc(var(--moon-size) * var(--halo-scale));
   transform: translate(50%, -50%);
   border-radius: 9999px;
   background: radial-gradient(circle, rgba(255, 250, 230, 0.32) 0%, rgba(200, 215, 255, 0.14) 32%, transparent 68%);
   opacity: var(--halo-opacity);
-  transition: opacity 0.8s ease;
+  transition: opacity 0.8s ease, width 0.8s ease, height 0.8s ease;
 }
 .night-sky__moon {
   position: absolute;

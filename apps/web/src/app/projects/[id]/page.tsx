@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronRight, CheckCircle2, AlertCircle, ArrowRight, ArrowLeft, GitBranch, FileArchive, UploadCloud, FolderGit2, ExternalLink, Clock, CalendarDays } from 'lucide-react';
+import { ChevronRight, CheckCircle2, AlertCircle, ArrowRight, ArrowLeft, GitBranch, FileArchive, UploadCloud, FolderGit2, ExternalLink, Clock, CalendarDays, Download, RefreshCw } from 'lucide-react';
 import ChatWidget from '@/components/ChatWidget';
 import AnalysisSummary from '@/components/AnalysisSummary';
 
@@ -41,6 +41,8 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
   const [error, setError] = useState('');
   const [uploadedFile, setUploadedFile] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [importMode, setImportMode] = useState<'github' | 'zip'>('github');
+  const [downloading, setDownloading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [job, setJob] = useState<Job | null>(null);
   const [tracking, setTracking] = useState(false);
@@ -217,6 +219,36 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
     if (file) uploadFile(file);
   };
 
+  // GitHub projects download GitHub's own archive (every file, no size limit);
+  // ZIP-upload projects download the analysed files stored by the API.
+  const downloadZip = async () => {
+    if (!job) return;
+    if (job.source_type === 'github') {
+      const repo = job.source.replace(/^https?:\/\/(www\.)?github\.com\//, '').replace(/\.git$/, '').replace(/\/$/, '');
+      window.location.href = `https://github.com/${repo}/archive/HEAD.zip`;
+      return;
+    }
+    setDownloading(true);
+    setError('');
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API}/api/projects/${params.id}/download`, { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'Download failed');
+      const blob = await res.blob();
+      const name = /filename="([^"]+)"/.exec(res.headers.get('Content-Disposition') || '')?.[1] || 'project.zip';
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = name;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   if (!project) {
     return (
       <div className="page">
@@ -278,9 +310,14 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
               <p className="text-sm text-slate-500 mt-1">{project.description || 'No description'}</p>
             </div>
             {completed && (
-              <Link href={`/projects/${params.id}/architecture`} className="btn btn-primary shrink-0 self-start md:self-auto group">
-                View architecture map <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-0.5" />
-              </Link>
+              <div className="flex flex-wrap gap-2.5 shrink-0 self-start md:self-auto">
+                <button onClick={downloadZip} disabled={downloading} className="btn btn-secondary" title="Download all files of this project as a ZIP">
+                  <Download size={16} /> {downloading ? 'Preparing…' : 'Download ZIP'}
+                </button>
+                <Link href={`/projects/${params.id}/architecture`} className="btn btn-primary group">
+                  View architecture map <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-0.5" />
+                </Link>
+              </div>
             )}
           </div>
 
@@ -357,71 +394,98 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
         <AnalysisSummary projectId={params.id} refreshKey={job.id} />
       )}
 
-      <section className="card card-body">
-        <div className="mb-6">
-          <h2 className="card-title">{job?.status === 'COMPLETED' ? 'Re-analyze repository' : 'Import a repository'}</h2>
-          <p className="card-subtitle">
-            {job?.status === 'COMPLETED'
-              ? 'Pushed new code? Import again to refresh the map and summary.'
-              : 'Import from GitHub or upload a ZIP archive to analyze the code.'}
-          </p>
+      <section className="card overflow-hidden">
+        <div className="px-6 sm:px-8 pt-6 pb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200">
+          <div className="flex items-start gap-3">
+            <span className="w-10 h-10 shrink-0 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+              {job?.status === 'COMPLETED' ? <RefreshCw size={18} /> : <UploadCloud size={18} />}
+            </span>
+            <div>
+              <h2 className="card-title">{job?.status === 'COMPLETED' ? 'Re-analyze repository' : 'Import a repository'}</h2>
+              <p className="text-sm text-slate-500 mt-0.5">
+                {job?.status === 'COMPLETED'
+                  ? 'Pushed new code? Run the analysis again to refresh the map and summary.'
+                  : 'Bring in your code from GitHub or a ZIP archive to start the analysis.'}
+              </p>
+            </div>
+          </div>
+          <div className="inline-flex p-1 rounded-lg bg-slate-100 border border-slate-200 self-start sm:self-auto" role="tablist" aria-label="Import source">
+            {([['github', 'GitHub', GitBranch], ['zip', 'ZIP upload', FileArchive]] as const).map(([key, label, Icon]) => (
+              <button
+                key={key}
+                role="tab"
+                aria-selected={importMode === key}
+                onClick={() => setImportMode(key)}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-sm font-medium transition-all ${
+                  importMode === key ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'
+                }`}
+              >
+                <Icon size={15} /> {label}
+              </button>
+            ))}
+          </div>
         </div>
-        {error && <div className="alert-error mb-6">{error}</div>}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <form onSubmit={handleGithubImport} className="flex flex-col">
-            <label htmlFor="github-url" className="label flex items-center gap-2"><GitBranch size={16} /> GitHub repository</label>
-            <input
-              id="github-url"
-              type="text"
-              value={githubUrl}
-              onChange={(e) => setGithubUrl(e.target.value)}
-              placeholder="https://github.com/user/repo"
-              className="input"
-              required
-              disabled={loading}
-            />
-            <p className="text-xs text-slate-500 mt-2">Public repositories only.</p>
-            <button disabled={loading} className="btn btn-primary w-full mt-6">
-              {loading ? 'Processing…' : 'Import & analyze'}
-            </button>
-          </form>
+        <div className="px-6 sm:px-8 py-6">
+          {error && <div className="alert-error mb-5">{error}</div>}
 
-          <div className="flex flex-col">
-            <span className="label flex items-center gap-2"><FileArchive size={16} /> ZIP archive</span>
-            {uploadedFile ? (
-              <div className="flex-1 rounded-xl border border-emerald-200 bg-emerald-50 p-6 text-center flex flex-col items-center justify-center">
-                <CheckCircle2 size={24} className="text-emerald-600" />
-                <p className="mt-2 text-sm font-medium text-emerald-800">Uploaded</p>
-                <p className="text-xs text-emerald-700 mt-0.5 truncate max-w-full">{uploadedFile}</p>
-                <button onClick={() => setUploadedFile(null)} className="mt-3 text-xs font-medium text-emerald-700 hover:text-emerald-900 underline underline-offset-4">
-                  Upload another file
+          {importMode === 'github' ? (
+            <form onSubmit={handleGithubImport} className="animate-fade-in">
+              <label htmlFor="github-url" className="label">Repository URL</label>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <GitBranch size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  <input
+                    id="github-url"
+                    type="text"
+                    value={githubUrl}
+                    onChange={(e) => setGithubUrl(e.target.value)}
+                    placeholder="https://github.com/user/repo"
+                    className="input pl-10"
+                    required
+                    disabled={loading}
+                  />
+                </div>
+                <button disabled={loading} className="btn btn-primary sm:w-48">
+                  {loading ? 'Processing…' : job?.status === 'COMPLETED' ? 'Re-analyze' : 'Import & analyze'}
                 </button>
               </div>
-            ) : (
-              <div
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click(); }}
-                className={`flex-1 rounded-xl border-2 border-dashed p-6 text-center transition cursor-pointer flex flex-col items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
-                  isDragging ? 'border-indigo-400 bg-indigo-50' : 'border-slate-300 hover:border-slate-400 hover:bg-slate-50'
-                }`}
-                onClick={() => fileInputRef.current?.click()}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-              >
-                <span className="w-10 h-10 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center">
-                  <UploadCloud size={20} />
-                </span>
-                <p className="mt-3 text-sm font-medium text-slate-700">
-                  {loading ? 'Uploading…' : isDragging ? 'Drop the ZIP file here' : <>Click to upload <span className="font-normal text-slate-500">or drag and drop</span></>}
-                </p>
-                <p className="text-xs text-slate-500 mt-1">.zip up to 4.5 MB</p>
-                <input type="file" accept=".zip" ref={fileInputRef} onChange={handleZipUpload} className="hidden" disabled={loading} />
+              <p className="text-xs text-slate-500 mt-2.5">Public GitHub repositories. The default branch is analyzed.</p>
+            </form>
+          ) : uploadedFile ? (
+            <div className="animate-fade-in rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <CheckCircle2 size={20} className="text-emerald-600 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-emerald-800">Uploaded</p>
+                  <p className="text-xs text-emerald-700 truncate">{uploadedFile}</p>
+                </div>
               </div>
-            )}
-          </div>
+              <button onClick={() => setUploadedFile(null)} className="btn btn-secondary text-xs px-3 py-1.5">Upload another</button>
+            </div>
+          ) : (
+            <div
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click(); }}
+              className={`animate-fade-in rounded-xl border-2 border-dashed px-6 py-10 text-center transition cursor-pointer flex flex-col items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
+                isDragging ? 'border-indigo-400 bg-indigo-50' : 'border-slate-300 hover:border-slate-400 hover:bg-slate-50'
+              }`}
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              <span className="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <UploadCloud size={20} />
+              </span>
+              <p className="mt-3 text-sm font-medium text-slate-700">
+                {loading ? 'Uploading…' : isDragging ? 'Drop the ZIP file here' : <>Click to upload <span className="font-normal text-slate-500">or drag and drop</span></>}
+              </p>
+              <p className="text-xs text-slate-500 mt-1">.zip archive, up to 4.5 MB</p>
+              <input type="file" accept=".zip" ref={fileInputRef} onChange={handleZipUpload} className="hidden" disabled={loading} />
+            </div>
+          )}
         </div>
       </section>
 

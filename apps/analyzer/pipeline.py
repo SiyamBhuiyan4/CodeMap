@@ -13,6 +13,31 @@ import os
 import uuid
 from collections import defaultdict
 
+MAX_STORED_FILE_BYTES = 512 * 1024
+
+
+def _attach_text_content(file_record: File, abs_path: str):
+    """Keep the text of every small text file so the project can be downloaded and
+    viewed later even when the workspace is gone (serverless). Binaries are flagged."""
+    try:
+        size = os.path.getsize(abs_path)
+        file_record.size_bytes = size
+        if size > MAX_STORED_FILE_BYTES:
+            return
+        with open(abs_path, "rb") as fh:
+            raw = fh.read()
+        if b"\x00" in raw[:8192]:
+            file_record.is_binary = True
+            return
+        text = raw.decode("utf-8")
+        file_record.content = text
+        file_record.line_count = text.count("\n") + (1 if text and not text.endswith("\n") else 0)
+    except UnicodeDecodeError:
+        file_record.is_binary = True
+    except OSError:
+        pass
+
+
 def _report_progress(db: Session, job: AnalysisJob, percent: int, stage: str):
     """Persist progress so the UI can poll it; only commits when the value changes."""
     value = f"{max(0, min(100, int(percent)))}%"
@@ -42,6 +67,7 @@ def run_analysis_pipeline(db: Session, snapshot_id: str, workspace_dir: str, job
                 path=rel_path,
                 language=detect_language(rel_path)
             )
+            _attach_text_content(f, os.path.join(workspace_dir, rel_path))
             db.add(f)
             file_records[rel_path] = f
             

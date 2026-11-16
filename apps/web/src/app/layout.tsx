@@ -17,12 +17,12 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
-        {/* Apply the saved theme before first paint so there is no flash */}
+        {/* Apply the saved moonlight setting before first paint so there is no flash */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('codeatlas.theme');if(!t){t=window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}if(t==='dark'){document.documentElement.classList.add('dark')}document.documentElement.style.colorScheme=t}catch(e){document.documentElement.classList.add('dark')}})();`,
+            __html: `(function(){var d=document.documentElement;d.classList.add('dark');try{var t=localStorage.getItem('codeatlas.theme');if(!t){t=window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}d.dataset.moon=t==='light'?'bright':'dim'}catch(e){d.dataset.moon='dim'}})();`,
           }}
         />
       </head>

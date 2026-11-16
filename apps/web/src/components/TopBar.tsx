@@ -21,7 +21,7 @@ export default function TopBar() {
           <Logo />
         </Link>
         <div className="flex items-center gap-3">
-          <ThemeToggle className="!text-indigo-600 dark:!text-amber-100 !border-slate-200 dark:!border-white/20 !bg-white/60 dark:!bg-white/10" />
+          <ThemeToggle />
           <UserMenu />
         </div>
       </div>

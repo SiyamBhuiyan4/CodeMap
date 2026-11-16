@@ -59,7 +59,6 @@ function CountUp({ value }: { value: number }) {
   return <>{shown.toLocaleString()}</>;
 }
 
-const EXPANDED_KEY = 'codeatlas.summary.expanded';
 
 // Overview of the latest completed analysis: totals, language mix and findings.
 export default function AnalysisSummary({ projectId, refreshKey }: { projectId: string; refreshKey: string }) {
@@ -76,16 +75,8 @@ export default function AnalysisSummary({ projectId, refreshKey }: { projectId: 
     return () => cancelAnimationFrame(id);
   }, [summary]);
 
-  // Remember the open/closed choice for this browser
-  useEffect(() => {
-    try { setExpanded(localStorage.getItem(EXPANDED_KEY) === '1'); } catch { /* storage blocked */ }
-  }, []);
-  const toggle = () => {
-    setExpanded((v) => {
-      try { localStorage.setItem(EXPANDED_KEY, v ? '0' : '1'); } catch { /* ignore */ }
-      return !v;
-    });
-  };
+  // Details start closed every time the project is opened
+  const toggle = () => setExpanded((v) => !v);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
