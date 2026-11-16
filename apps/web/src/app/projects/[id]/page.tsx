@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ChatWidget from '@/components/ChatWidget';
+import AnalysisSummary from '@/components/AnalysisSummary';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -41,7 +42,6 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [job, setJob] = useState<Job | null>(null);
   const [tracking, setTracking] = useState(false);
-  const [showIngest, setShowIngest] = useState(false);
   const ignoreJobId = useRef<string | null>(null);
   const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -90,6 +90,7 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
       const latest = await fetchLatestJob();
       if (!latest) return;
       setJob(latest);
+      if (latest.source_type === 'github') setGithubUrl((u) => u || latest.source);
       if (isActive(latest)) {
         setTracking(true);
         setLoading(true);
@@ -100,7 +101,6 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
 
   const beginTracking = () => {
     ignoreJobId.current = job?.id ?? null;
-    setShowIngest(false);
     setJob(null);
     setTracking(true);
     startPolling();
@@ -256,16 +256,9 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
                     <p className="text-sm text-gray-500 truncate max-w-md" title={job.source}>{job.source}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  {!showIngest && (
-                    <button onClick={() => { setShowIngest(true); if (job?.source_type === 'github') setGithubUrl(job.source); }} className="text-sm text-gray-500 hover:text-gray-900 underline-offset-4 hover:underline">
-                      Re-analyze
-                    </button>
-                  )}
-                  <Link href={`/projects/${params.id}/architecture`} className="px-6 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition text-center">
-                    View Architecture Map
-                  </Link>
-                </div>
+                <Link href={`/projects/${params.id}/architecture`} className="px-6 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition text-center">
+                  View Architecture Map
+                </Link>
               </div>
             ) : job?.status === 'FAILED' ? (
               <div className="flex items-center gap-4">
@@ -279,12 +272,15 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
           </div>
         )}
 
-        {(showIngest || !(job?.status === 'COMPLETED' || (tracking && (!job || isActive(job))))) && (
+        {job?.status === 'COMPLETED' && !tracking && (
+          <AnalysisSummary projectId={params.id} refreshKey={job.id} />
+        )}
+
         <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between mb-6">
+          <div className="mb-6">
             <h2 className="text-xl font-medium">{job?.status === 'COMPLETED' ? 'Re-analyze Repository' : 'Ingest Repository'}</h2>
-            {showIngest && (
-              <button onClick={() => setShowIngest(false)} className="text-sm text-gray-500 hover:text-gray-900">Cancel</button>
+            {job?.status === 'COMPLETED' && (
+              <p className="text-sm text-gray-500 mt-1">Pushed new code? Import again to refresh the map and summary.</p>
             )}
           </div>
           {error && <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm">{error}</div>}
@@ -350,7 +346,6 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
             </div>
           </div>
         </div>
-        )}
       </div>
       <ChatWidget projectId={params.id} />
     </div>
