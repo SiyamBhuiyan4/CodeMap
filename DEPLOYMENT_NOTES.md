@@ -66,6 +66,11 @@ The graph page was slow and opened on a random corner. Changes made:
 - If the session token has expired, you are signed out automatically and sent to /login.
 - Files: `apps/web/src/components/UserMenu.tsx`, `TopBar.tsx`, and `app/layout.tsx`.
 
+## UI cleanup (2026-11-16)
+- Removed the "Architecture Map" / "AI Chat" buttons from the project header and the "Projects" button from the top bar.
+- AI chat is now a fixed ✨ button at the bottom-right of the project page and the architecture map. It opens a chat window there (`components/ChatWidget.tsx`). On the map, the selected node is sent as context.
+- The result card says "Analysis complete" only right after an import. On a fresh visit it says "Last analyzed repository" (the previous import) with **View Architecture Map**.
+
 ## What Siyam did (by hand)
 1. Asked for the app to be hosted for free, without a card, and without dropping any features.
 2. Tried Oracle Cloud first (needs a card, so dropped), then Hugging Face (Docker Spaces need PRO, so dropped).

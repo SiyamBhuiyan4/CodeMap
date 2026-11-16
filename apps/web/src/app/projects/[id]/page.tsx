@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import ChatWidget from '@/components/ChatWidget';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -40,6 +41,7 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [job, setJob] = useState<Job | null>(null);
   const [tracking, setTracking] = useState(false);
+  const [justFinished, setJustFinished] = useState(false);
   const ignoreJobId = useRef<string | null>(null);
   const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -98,6 +100,7 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
 
   const beginTracking = () => {
     ignoreJobId.current = job?.id ?? null;
+    setJustFinished(true);
     setJob(null);
     setTracking(true);
     startPolling();
@@ -223,14 +226,6 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
             <h1 className="text-3xl font-medium text-gray-900">{project.name}</h1>
             <p className="text-gray-500 mt-2">{project.description || 'No description'}</p>
           </div>
-          <div className="flex space-x-4">
-            <Link href={`/projects/${params.id}/architecture`} className="px-6 py-2 bg-white border border-gray-200 text-gray-900 rounded-full font-medium hover:bg-gray-50 transition">
-              Architecture Map
-            </Link>
-            <Link href={`/projects/${params.id}/chat`} className="px-6 py-2 bg-gray-900 text-white rounded-full font-medium hover:bg-gray-800 transition shadow-sm">
-              AI Chat
-            </Link>
-          </div>
         </header>
 
         {(tracking || job) && (
@@ -257,18 +252,13 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-2xl">✓</div>
                   <div>
-                    <h2 className="text-xl font-medium">Analysis complete</h2>
+                    <h2 className="text-xl font-medium">{justFinished ? 'Analysis complete' : 'Last analyzed repository'}</h2>
                     <p className="text-sm text-gray-500 truncate max-w-md" title={job.source}>{job.source}</p>
                   </div>
                 </div>
-                <div className="flex gap-3">
-                  <Link href={`/projects/${params.id}/architecture`} className="px-6 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition">
-                    View Architecture Map
-                  </Link>
-                  <Link href={`/projects/${params.id}/chat`} className="px-6 py-3 bg-white border border-gray-200 text-gray-900 rounded-xl font-medium hover:bg-gray-50 transition">
-                    Ask AI
-                  </Link>
-                </div>
+                <Link href={`/projects/${params.id}/architecture`} className="px-6 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition text-center">
+                  View Architecture Map
+                </Link>
               </div>
             ) : job?.status === 'FAILED' ? (
               <div className="flex items-center gap-4">
@@ -348,6 +338,7 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
           </div>
         </div>
       </div>
+      <ChatWidget projectId={params.id} />
     </div>
   );
 }
