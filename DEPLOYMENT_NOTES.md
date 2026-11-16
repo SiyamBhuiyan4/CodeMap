@@ -84,7 +84,7 @@ Visual only. No features changed.
 - Landing page: hero, call-to-action buttons, and 4 feature cards.
 - Sign in / sign up: split screen (dark brand panel + form), via `components/AuthShell.tsx`.
 - Projects: page header, search, skeleton loading, cards with icon, delete on hover and "Open →".
-- Project page: breadcrumb, status card with progress bar, summary, and an import section with GitHub + ZIP drop zone.
+- Project page: a header card (gradient banner, project icon, name, status badge, description, repository link, last analyzed and created dates, View architecture map button), a progress or error card while analyzing or failed, the summary, and an import section with GitHub + ZIP drop zone.
 - Chat page restyled. It also now reads the API's `reply` field (it previously showed "undefined").
 - Architecture map header: "Architecture map" / "Back to project" (was "CodeAtlas Engine" / "Exit Matrix").
 - The ✨ AI chat button is unchanged.

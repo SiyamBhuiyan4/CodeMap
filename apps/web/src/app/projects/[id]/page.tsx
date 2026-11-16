@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronRight, CheckCircle2, AlertCircle, ArrowRight, GitBranch, FileArchive, UploadCloud } from 'lucide-react';
+import { ChevronRight, CheckCircle2, AlertCircle, ArrowRight, ArrowLeft, GitBranch, FileArchive, UploadCloud, FolderGit2, ExternalLink, Clock, CalendarDays } from 'lucide-react';
 import ChatWidget from '@/components/ChatWidget';
 import AnalysisSummary from '@/components/AnalysisSummary';
 
@@ -17,6 +17,7 @@ type Job = {
   error_message: string | null;
   source: string;
   source_type: string;
+  completed_at?: string | null;
 };
 
 const STAGE_LABELS: Record<string, string> = {
@@ -227,20 +228,97 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
   }
 
   const analyzing = tracking && (!job || isActive(job));
+  const completed = job?.status === 'COMPLETED' && !analyzing;
+  const failed = job?.status === 'FAILED' && !analyzing;
+  const repoLabel = job?.source ? job.source.replace(/^https?:\/\/(www\.)?github\.com\//, '') : null;
+  const fmtDate = (v?: string | null) => {
+    if (!v) return null;
+    const d = new Date(/([zZ]|[+-]\d{2}:?\d{2})$/.test(v) ? v : `${v}Z`);
+    return isNaN(d.getTime()) ? null : d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+  const status = analyzing
+    ? { label: `Analyzing · ${job?.progress ?? 0}%`, cls: 'bg-indigo-50 text-indigo-700 ring-indigo-200', dot: 'bg-indigo-500 animate-pulse' }
+    : completed
+    ? { label: 'Analyzed', cls: 'bg-emerald-50 text-emerald-700 ring-emerald-200', dot: 'bg-emerald-500' }
+    : failed
+    ? { label: 'Failed', cls: 'bg-red-50 text-red-700 ring-red-200', dot: 'bg-red-500' }
+    : { label: 'Not analyzed', cls: 'bg-slate-100 text-slate-600 ring-slate-200', dot: 'bg-slate-400' };
 
   return (
     <div className="page max-w-5xl space-y-6">
-      <div>
-        <nav className="breadcrumb" aria-label="Breadcrumb">
-          <Link href="/projects">Projects</Link>
-          <ChevronRight size={14} />
-          <span className="text-slate-900 truncate">{project.name}</span>
-        </nav>
-        <h1 className="page-title">{project.name}</h1>
-        <p className="page-subtitle">{project.description || 'No description'}</p>
-      </div>
+      <nav className="breadcrumb !mb-0" aria-label="Breadcrumb">
+        <Link href="/projects" className="inline-flex items-center gap-1"><ArrowLeft size={14} /> Projects</Link>
+        <ChevronRight size={14} className="text-slate-300" />
+        <span className="text-slate-900 font-medium truncate">{project.name}</span>
+      </nav>
 
-      {(tracking || job) && (
+      <header className="card overflow-hidden">
+        <div className="h-24 bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-500 relative">
+          <div
+            className="absolute inset-0 opacity-20"
+            style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '18px 18px' }}
+          />
+        </div>
+        <div className="px-6 sm:px-8 pb-6">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-5 -mt-10">
+            <div className="flex flex-col sm:flex-row sm:items-end gap-4 min-w-0">
+              <span className="w-20 h-20 shrink-0 rounded-2xl bg-white ring-4 ring-white shadow-md border border-slate-200 text-indigo-600 flex items-center justify-center relative">
+                <FolderGit2 size={34} strokeWidth={1.75} />
+              </span>
+              <div className="min-w-0 pb-1">
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900 truncate">{project.name}</h1>
+                  <span className={`badge ring-1 ring-inset ${status.cls}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} /> {status.label}
+                  </span>
+                </div>
+                <p className="text-sm text-slate-500 mt-1">{project.description || 'No description'}</p>
+              </div>
+            </div>
+            {completed && (
+              <Link href={`/projects/${params.id}/architecture`} className="btn btn-primary shrink-0">
+                View architecture map <ArrowRight size={16} />
+              </Link>
+            )}
+          </div>
+
+          <dl className="mt-6 pt-5 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+            <div className="min-w-0">
+              <dt className="text-xs font-medium text-slate-500 uppercase tracking-wide">Repository</dt>
+              <dd className="mt-1 flex items-center gap-1.5 text-slate-900 min-w-0">
+                <GitBranch size={14} className="text-slate-400 shrink-0" />
+                {repoLabel ? (
+                  job?.source_type === 'github' ? (
+                    <a href={job!.source} target="_blank" rel="noopener noreferrer" className="truncate hover:text-indigo-600 inline-flex items-center gap-1" title={job!.source}>
+                      {repoLabel} <ExternalLink size={12} className="shrink-0 text-slate-400" />
+                    </a>
+                  ) : (
+                    <span className="truncate" title={repoLabel}>{repoLabel}</span>
+                  )
+                ) : (
+                  <span className="text-slate-400">Not imported yet</span>
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs font-medium text-slate-500 uppercase tracking-wide">Last analyzed</dt>
+              <dd className="mt-1 flex items-center gap-1.5 text-slate-900">
+                <Clock size={14} className="text-slate-400" />
+                {fmtDate(job?.completed_at) || <span className="text-slate-400">—</span>}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs font-medium text-slate-500 uppercase tracking-wide">Created</dt>
+              <dd className="mt-1 flex items-center gap-1.5 text-slate-900">
+                <CalendarDays size={14} className="text-slate-400" />
+                {fmtDate(project.created_at) || <span className="text-slate-400">—</span>}
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </header>
+
+      {(analyzing || failed) && (
         <section className="card card-body">
           {analyzing ? (
             <div>
@@ -258,21 +336,6 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
                 />
               </div>
               {job?.source && <p className="mt-3 text-xs text-slate-500 truncate" title={job.source}>{job.source}</p>}
-            </div>
-          ) : job?.status === 'COMPLETED' ? (
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
-              <div className="flex items-center gap-4 min-w-0">
-                <span className="w-11 h-11 shrink-0 rounded-full bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200 flex items-center justify-center">
-                  <CheckCircle2 size={22} />
-                </span>
-                <div className="min-w-0">
-                  <h2 className="card-title">Analysis complete</h2>
-                  <p className="text-sm text-slate-500 truncate" title={job.source}>{job.source}</p>
-                </div>
-              </div>
-              <Link href={`/projects/${params.id}/architecture`} className="btn btn-primary">
-                View architecture map <ArrowRight size={16} />
-              </Link>
             </div>
           ) : job?.status === 'FAILED' ? (
             <div className="flex items-center gap-4">
