@@ -116,7 +116,7 @@ One palette everywhere, defined as CSS variables in `globals.css`:
 
 ## Global AI chat button (2026-11-17)
 - The ✨ AI chat button is fixed at the bottom-right of every signed-in page (`components/GlobalChat.tsx`, mounted in the layout).
-- Inside a project it chats about that project. On other pages (projects list, new project) the chat window shows a **project picker**.
+- Inside a project it chats about that project. On other pages (projects list, new project) the chat window shows a **searchable project picker** (`components/ProjectPicker.tsx`). It uses the same trie as the other searches: it matches the name or any word in it, highlights the matching letters, shows a result counter, and supports ↑↓, Enter and Esc.
 - The architecture map keeps its own chat, which sends the selected node as context. The button is hidden on signed-out pages and the full-page chat, so only one ever shows.
 
 ## What Siyam did (by hand)

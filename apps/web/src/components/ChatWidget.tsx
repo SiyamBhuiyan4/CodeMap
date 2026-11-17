@@ -3,10 +3,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Sparkles, X } from 'lucide-react';
+import ProjectPicker, { ProjectOption } from './ProjectPicker';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
-type ProjectOption = { id: string; name: string };
 
 // Floating AI chat: a fixed button at the bottom-right that opens a chat window.
 // Mounted globally for signed-in pages (components/GlobalChat.tsx) and on the architecture map
@@ -148,16 +148,10 @@ export default function ChatWidget({ projectId = null, contextEntityId = null }:
                 ) : projects.length === 0 ? (
                   <p className="text-xs text-gray-400">Create a project first to chat about its code.</p>
                 ) : (
-                  <label className="flex items-center gap-2 text-xs text-gray-400">
-                    Project
-                    <select
-                      value={pickedId ?? ''}
-                      onChange={(e) => setPickedId(e.target.value)}
-                      className="flex-1 bg-gray-950 border border-gray-700 rounded-lg px-2.5 py-1.5 text-sm text-gray-200 focus:outline-none focus:border-[#8187ff]"
-                    >
-                      {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                  </label>
+                  <div className="flex items-center gap-2 text-xs text-gray-400">
+                    <span className="shrink-0">Project</span>
+                    <ProjectPicker projects={projects} value={pickedId} onChange={setPickedId} />
+                  </div>
                 )}
               </div>
             )}
